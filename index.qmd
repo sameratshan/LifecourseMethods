@@ -1,0 +1,36 @@
+---
+title: "A comparison of methods for estimating the health effects of exposures over the life course: adiposity and systemic inflammation in the 1958 National Child Development Study"
+---
+
+## Overview
+
+This repository accompanies the paper:
+
+> **A comparison of methods for estimating the health effects of exposures over the life course: adiposity and systemic inflammation in the 1958 National Child Development Study**
+
+We compare seven life course modeling approaches for estimating associations between longitudinal BMI trajectories and mid-life systemic inflammation (high-sensitivity C-reactive protein, hsCRP) using data from the 1958 National Child Development Study (NCDS).
+
+## Methods Compared
+
+1. **Single Numeric Summaries** 
+2. **Time Period Comparisons** 
+3. **Multiple Informant Model** 
+4. **Sequence Analysis** 
+5. **Latent Class Trajectory Modeling** 
+6. **Distributed Lag Nonlinear Models (DLNM)** 
+7. **Structured Life Course Modeling Approach (SLCMA)**
+
+## Repository Contents
+
+- [**Supplementary Appendix**](appendix.qmd) -- Full technical details, implementation, and results for all seven methods
+- [**Data Preparation Code**](Clean_NCDS.R) -- R script for cleaning NCDS data, fitting the hierarchical GAM for BMI imputation, and preparing analytic variables
+
+## Data Access
+
+The 1958 National Child Development Study data are available through the [UK Data Service](https://ukdataservice.ac.uk/) (study numbers SN 2000032 and SN 6137). Access requires registration and approval. The harmonized BMI measures were obtained from the [CLOSER](https://closer.ac.uk/) Work Package 1 consolidated dataset.
+
+All analyses were conducted in R. The supplementary appendix was authored in Quarto. To reproduce the analyses:
+
+1. Obtain NCDS data access through the UK Data Service
+2. Run `Clean_NCDS.R` to prepare the analytic dataset
+3. Render the supplementary appendix (`appendix.qmd`)

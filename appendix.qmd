@@ -1,0 +1,2807 @@
+---
+title: "Appendix S1"
+subtitle: "A comparison of methods for estimating the health effects of exposures over the life course: adiposity and systemic inflammation in the 1958 National Child Development Study"
+format:
+  html:
+    toc: true
+    toc-location: body
+    toc-depth: 2
+    toc-expand: 3
+    number-sections: true
+    code-fold: true
+    code-overflow: wrap
+    code-summary: "Show the code"
+    embed-resources: true
+    crossrefs-hover: true
+editor: source
+execute:
+  echo: true
+  warning: false
+  message: false
+knitr:
+  opts_chunk:
+    dev: "png"
+bibliography: references.bib
+csl: american-medical-association.csl
+link-citations: true
+fig-cap-location: top
+crossref:
+  fig-title: "Figure S"
+  tbl-title: "Table S"
+  fig-prefix: "Figure S"
+  tbl-prefix: "Table S"
+---
+
+```{=html}
+<style>
+/* ── Page-like layout ─────────────────────────────────────── */
+body {
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 9.6pt;
+  line-height: 1.4;
+  color: #1a1a1a;
+  background-color: #f8f8f8;
+}
+
+main.content {
+  max-width: 62em;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #ffffff;
+  padding: 2.5em 3em;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+}
+
+/* ── Title block ──────────────────────────────────────────── */
+.quarto-title h1.title {
+  font-size: 1.6em;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 0.2em;
+}
+
+.quarto-title .subtitle {
+  font-size: 1.2em;
+  font-weight: 400;
+  color: #555;
+}
+
+/* ── Headings ─────────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  color: #1a1a1a;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+}
+
+h1 { font-size: 1.45em; border-bottom: 1.5px solid #cccccc; padding-bottom: 0.25em; }
+h2 { font-size: 1.2em; }
+h3 { font-size: 1.05em; font-style: italic; }
+
+/* ── Paragraph spacing ────────────────────────────────────── */
+p { margin-bottom: 0.9em; text-align: justify; }
+
+/* ── Figure and table captions ────────────────────────────── */
+.quarto-figure-center > figure > p,
+.quarto-figure-center > figure > div {
+  text-align: left !important;
+}
+
+.quarto-figure-center > figure > figcaption,
+figcaption,
+.table-caption,
+caption {
+  text-align: left !important;
+  font-size: 0.95em;
+  color: #333;
+  font-style: italic;
+  margin-top: 0.4em;
+  margin-bottom: 0.8em;
+}
+
+/* ── Tables ───────────────────────────────────────────────── */
+.quarto-figure-center > figure > div table {
+  font-size: 0.85em;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85em;
+  margin-bottom: 1.2em;
+}
+
+table th {
+  border-bottom: 2px solid #333;
+  padding: 0.4em 0.6em;
+  text-align: left;
+  font-weight: 600;
+}
+
+table td {
+  border-bottom: 1px solid #ddd;
+  padding: 0.35em 0.6em;
+}
+
+table tbody tr:last-child td {
+  border-bottom: 2px solid #333;
+}
+
+/* ── GT / gtsummary tables ───────────────────────────────── */
+div#quarto-document-content .gt_table,
+.gtsummary,
+div.cell-output-display table.gt_table {
+  font-size: 0.8em !important;
+}
+
+div#quarto-document-content .gt_table th,
+div#quarto-document-content .gt_table td,
+.gt_table .gt_row,
+.gt_table .gt_col_heading {
+  padding: 2px 5px !important;
+}
+
+/* ── Code blocks ──────────────────────────────────────────── */
+pre.sourceCode {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  font-size: 0.82em;
+  padding: 0.8em 1em;
+}
+
+code { font-size: 0.88em; }
+
+div.sourceCode { margin-bottom: 1em; }
+
+/* ── TOC styling ──────────────────────────────────────────── */
+#TOC {
+  font-size: 0.95em;
+  border-left: 2px solid #ccc;
+  padding-left: 1em;
+  margin-bottom: 2em;
+}
+
+/* ── Horizontal rules (section dividers) ──────────────────── */
+hr {
+  border: none;
+  border-top: 1.5px solid #aaa;
+  margin: 2.5em 0;
+}
+
+/* ── Lists ────────────────────────────────────────────────── */
+ul, ol { margin-bottom: 0.9em; }
+li { margin-bottom: 0.3em; }
+</style>
+```
+
+This appendix provides full technical details for the seven life course methods compared in the main paper, using BMI and systemic inflammation (hsCRP) in the 1958 National Child Development Study (NCDS) as a running empirical example. For each method, we give a brief description, provide implementation choices, and results, with supporting figures and tables. All analyses were conducted in R; code is embedded throughout and can be revealed using the "Show the code" toggle.
+
+
+```{r}
+library(here)
+library(gtsummary)
+library(gt)
+library(mgcv) 
+library(tidygam)
+library(lcmm)
+library(marginaleffects)
+source(here("Code", "Clean_NCDS.R"))
+source(here("Code", "IOTF_BMI.R"))
+set_gtsummary_theme(theme_gtsummary_compact(set_theme = TRUE))
+```
+
+```{r}
+# Load the fitted Hierarchical GAM model for BMI predictions
+mod.BMI.fs.bam <- readRDS(here("Data", "Models", "mod.BMI.fs.bam.rds"))
+
+# Create predictions from Hierarchical GAM model
+df.bmi_prediction <- expand.grid(
+  xage = 7:56,
+  self_report = 0,
+  ncdsid = unique(df.NCDS.HBMI.complete.analytic$ncdsid)) %>%
+  left_join(  
+    df.NCDS.HBMI.complete.analytic %>%
+    select(ncdsid, sex) %>%
+    filter(!is.na(sex)) %>%
+    distinct() %>%
+    group_by(ncdsid) %>%
+    summarise(sex = first(sex), .groups = "drop"),
+  by = "ncdsid"
+  ) %>%
+  mutate(
+    pred_bmi = predict(mod.BMI.fs.bam, newdata = ., type = "response")
+  ) %>%
+  mutate(sex = ifelse(sex == "Female", "F", "M")) %>%
+  left_join(iotf_cutoffs, by = c("sex", "xage" = "age")) %>% 
+  mutate(
+    bmi_category = case_when(
+      pred_bmi < 25   ~ "Normal",
+      xage >= 18 & pred_bmi < 30   ~ "Overweight",
+      xage >= 18                   ~ "Obese",
+      xage < 18 & pred_bmi < overweight  ~ "Normal",
+      xage < 18 & pred_bmi < obese       ~ "Overweight",
+      xage < 18                          ~ "Obese",
+      TRUE ~ NA_character_
+    )
+  )
+
+```
+
+
+# Analytic Sample
+
+This section describes the derivation of the analytic sample from the NCDS Wave 10 interview cohort and provides descriptive statistics for all variables used in subsequent analyses. @fig-s1 presents the sample flow diagram, detailing each exclusion criterion applied from initial Wave 10 participation through nurse visit consent, blood sample collection, valid hsCRP measurement, removal of values above 10 mg/L (indicating possible acute infection), completeness of early life covariates, and the requirement of at least three longitudinal BMI measurements. @tbl-s1 summarizes the distributions of the outcome (log-transformed hsCRP), BMI averaged across three life periods, and all covariates in the final analytic sample. @tbl-s2 reports the distribution of the number of BMI observations per respondent, reflecting the density of the longitudinal BMI data available for exposure modeling.
+
+```{r}
+#| label: fig-s1
+#| fig-height: 8
+#| fig-width: 5
+#| out-width: "75%"
+#| fig-cap: "Sample flow diagram showing the derivation of the analytic sample from the NCDS Wave 10 cohort."
+
+library(DiagrammeR)
+
+grViz("
+  digraph sample_flow {
+    
+    # Graph settings
+    graph [rankdir = TB, fontname = 'Helvetica', nodesep = 0.3, ranksep = 0.4]
+    node [shape = box, fontname = 'Helvetica', fontsize = 10, width = 3.5]
+    edge [fontname = 'Helvetica', fontsize = 9]
+    
+    # Main flow nodes
+    n0 [label = 'Wave 10 Interviews\\nn = 8,405']
+    n1 [label = 'Agreed to nurse visit contact\\nn = 7,166\\n(1,239 not asked/declined)']
+    n2 [label = 'Participated in nurse visit\\nn = 6,309\\n(857 did not participate)']
+    n3 [label = 'Blood samples analyzed\\nn = 5,117\\n(1,192 no consent/ineligible)']
+    n4 [label = 'Valid hsCRP values\\nn = 4,179\\n(938 invalid/missing)']
+    n5 [label = 'hsCRP < 10 mg/L\\nn = 4,014\\n(165 outliers removed)']
+    n6 [label = 'Complete early life covariates\\nn = 2,255\\n(1,759 missing covariates)']
+    n7 [label = 'Final analytic sample\\n≥3 BMI measures\\nn = 2,197\\n(58 excluded)', style = 'filled', fillcolor = 'lightblue']
+
+    # Main flow edges
+    n0 -> n1
+    n1 -> n2
+    n2 -> n3
+    n3 -> n4
+    n4 -> n5
+    n5 -> n6
+    n6 -> n7
+  }
+  ")
+```
+
+```{r}
+#| tbl-cap: "Descriptive statistics for the analytic sample."
+#| label: tbl-s1
+df.bmi_prediction %>% 
+  group_by(ncdsid) %>%
+  select(ncdsid, xage, pred_bmi) %>%
+  summarise(
+    mean_bmi_early_life = mean(pred_bmi[xage >= 7 & xage <= 25], na.rm = TRUE), # early life BMI (7-25 years)
+    mean_bmi_early_midlife = mean(pred_bmi[xage > 25 & xage <= 40], na.rm = TRUE), # early midlife BMI (26-40 years)
+    mean_bmi_late_midlife = mean(pred_bmi[xage > 40 & xage <= 60], na.rm = TRUE) # late midlife BMI (41-60 years)
+  ) %>% 
+  right_join(df.model, by = "ncdsid") %>%
+  select(loghsCRP, starts_with("mean_bmi"), all_of(covs)) %>%
+  filter(complete.cases(.)) %>% 
+  tbl_summary(
+    include = c(loghsCRP, sweep10_age, sex, mean_bmi_early_life, mean_bmi_early_midlife, mean_bmi_late_midlife, educ_qual, father_bmi, mother_bmi, n646, n607, n2383),
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    label = list(
+      loghsCRP ~ "log(hsCRP)",
+      mean_bmi_early_life ~ "Mean BMI (7-25 years)",
+      mean_bmi_early_midlife ~ "Mean BMI (26-40 years)",
+      mean_bmi_late_midlife ~ "Mean BMI (41-56 years)",
+      sex ~ "Sex",
+      sweep10_age ~ "Age at hsCRP measurement (years)",
+      educ_qual ~ "Educational qualification",
+      father_bmi ~ "Father's BMI",
+      mother_bmi ~ "Mother's BMI",
+      n646 ~ "Birthweight",
+      n607 ~ "Person's per room",
+      n2383 ~ "Father's occupation"
+    ),
+    missing = "ifany",
+    missing_text = "Missing"
+  ) %>%
+  italicize_levels() %>%
+  modify_table_body(
+    ~ .x %>%
+      add_row(
+        .before = which(.x$variable == "educ_qual"),
+        label = "     Early Childhood Covariates",
+        variable = NA,
+        stat_0 = ""
+      )
+  )
+```
+
+```{r}                                                                 
+#| tbl-cap: "Distribution of the number of longitudinal BMI observations available per respondent in the analytic sample."
+#| label: tbl-s2
+
+# Analyze the distribution of BMI measurements per respondent
+df.NCDS.HBMI.complete.analytic %>%
+    group_by(ncdsid) %>%
+    summarise(n_visits = n()) %>%
+    count(n_visits) %>%
+    rename(`Number of BMI Observations` = n_visits,
+           `Number of Respondents` = n) %>%
+    mutate(`Percent` = round(100 * `Number of Respondents` / sum(`Number of Respondents`), 1)) %>%
+    gt() %>%
+    fmt_number(columns = `Number of Respondents`, decimals = 0) %>%
+    cols_align(align = "center")
+```
+
+
+BMI measures were drawn from a consolidated dataset (CLOSER Work Package 1) including harmonized height, weight, and BMI measures from the five British longitudinal cohort studies including the NCDS [@closer2019]. Childhood and adolescent BMI values (ages 7, 11, and 16) were derived from direct physical measurements taken by a nurse. Adult BMI values were obtained from a mix of self-reported and measured data, depending on wave: weight and height at ages 23, 42, and 50 were self-reported, while assessments at ages 33 and 44 were completed by trained interviewers or nurses. BMI at age 55 was derived from self-reported height and weight collected via web or telephone interview as part of the age 55 wave [@cls2024].
+
+# Modeling BMI Exposure
+
+The hierarchical GAM was implemented using the computationally efficient `bam()` function in the `mgcv` package in R [@wood2025; @wood2015]. Modeling BMI as a smooth trajectory is appropriate because the analysis targets longer-term patterns of adiposity rather than short-term fluctuations in weight between measurement occasions. Smoothing reduces noise due to irregular timing while preserving the broader exposure patterns. To ensure appropriate flexibility in exposure patterns, we estimated a separate non-linear BMI trajectory for each individual while constraining trajectories to share the same degree of smoothness (Model S structure) [@pedersen2019] (see Figure 1 in main text). The model also includes a fixed effect for measurement mode (directly measured vs. self-reported) to account for systematic reporting differences. This approach to imputation reduces noise due to irregular measurement timing, accounts for systematic reporting differences, and provides consistent longitudinal BMI trajectories for each respondent. Statistical code for model fitting is in Appendix S2 "Clean_NCDS.R" file.
+
+:::: {#fig-s2-bmi layout-ncol=2 fig-cap="Predicted BMI trajectories from the hierarchical GAM. A) Population mean trajectory with 95% confidence interval. B) Individual predicted trajectories for a random sample of 16 respondents, with observed BMI values shown by measurement type."}
+
+```{r}
+#| label: fig-s2-bmi-a
+#| fig-cap: "Population-Level BMI Trajectory"
+#| fig.dpi: 60
+
+# Create population-level prediction data by aggregating individual predictions
+population_data <- df.bmi_prediction %>%
+  group_by(xage) %>%
+  summarise(
+    pred_bmi = mean(pred_bmi, na.rm = TRUE),
+    se_fit = sd(pred_bmi, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    lower_ci = pred_bmi - 1.96 * se_fit,
+    upper_ci = pred_bmi + 1.96 * se_fit
+  )
+
+# Plot population-level BMI trajectory
+population_data %>%
+  ggplot(aes(x = xage, y = pred_bmi)) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.6, fill = "lightgray") +
+  geom_line(color = "steelblue", size = 1.2) +
+  labs(x = "Age (years)", 
+       y = "Predicted BMI", 
+       title = "Population Mean BMI Trajectory from GAM") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 14))
+```
+
+```{r}
+#| label: fig-s2-bmi-b
+#| fig-cap: "Individual BMI Trajectories (Sample of 16)"
+#| fig.dpi: 60
+
+set.seed(1234)  # For reproducibility
+
+df.sampleplot <-
+  df.NCDS.HBMI.complete.analytic %>% 
+  group_by(ncdsid) %>%
+  nest() %>%
+  ungroup() %>%
+  slice_sample(n = 16) %>%  # Sample 25 random observations
+  unnest() 
+  
+# Plot the sampled 20 individuals
+df.sampleplot %>%
+  mutate(measurement_type = ifelse(self_report == 1, "Self-reported", "Measured")) %>%
+  ggplot(aes(x = xage, y = bmi)) +
+    # Scatter plot with measurement type in the aesthetic
+    geom_point(aes(color = measurement_type), alpha = 0.6, size = 1.2) +
+    # GAM model predictions for the same 16 individuals
+    geom_line(data = df.bmi_prediction %>% 
+                filter(ncdsid %in% unique(df.sampleplot$ncdsid)), 
+              aes(x = xage, y = pred_bmi, color = "Individual Predictions"), 
+              size = 0.8) +
+    facet_wrap(~ncdsid) +  
+    # Labels and Theme
+    labs(x = "Age (years)", y = "BMI", color = "Data Type", title = "Predicted BMI Trajectories for Sample of Respondents") +
+    scale_color_manual(values = c(
+      "Measured" = "black",
+      "Self-reported" = "darkred",
+      "Individual Predictions" = "steelblue")) +
+    theme_minimal() +
+    theme(strip.text = element_blank(),  # Remove facet titles
+          legend.position = "bottom",
+          plot.title = element_text(face = "bold", size = 14))  # Move legend to the bottom
+```
+
+::::
+
+# Lifecourse Methods Summary Table {.smaller .custom-small}
+
+@tbl-s16-summary provides a side-by-side comparison of all seven life course methods, summarizing the key estimand produced by each approach, the primary research question it addresses, and an example substantive conclusion drawn from the BMI--hsCRP analysis presented in this appendix.
+
+| Method | Key Estimands | Primary Research Questions | Example Substantive Conclusion from BMI-hsCRP Analysis |
+|--------|---------------|---------------------------|-------------------------------------------------------|
+| **Single Summary** | Average increase in log(hsCRP) associated with a 1-unit increase in mean BMI across ages 7–56, conditional on early-life covariates | Does overall/cumulative BMI exposure across the life course predict inflammation in mid-to-late life? | Each 1-unit increase in mean BMI across ages 7-56 is associated with 0.09-unit higher log(hsCRP) (95% CI: 0.08, 0.11, p<0.001) |
+| **Time Period Comparison** | Period-specific associations between BMI and log(hsCRP), estimated either as marginal associations (separate models) or conditional on exposure in other periods (conditional models) | Which life stage(s) of BMI exposure are associated with inflammation? Does BMI during one period matter more than others? | All three life periods show significant associations with log(hsCRP): Early life (ages 7-25: β=0.06), early midlife (ages 26-40: β=0.07) and late midlife (ages 41-57: β=0.07)|
+| **Multiple Informant** | (1) Period-specific marginal associations between BMI and log(hsCRP) for each life stage, and (2) contrasts in these associations across periods, represented by BMI-by-period interaction terms | Are the associations between BMI and hsCRP statistically different across life stages? Is there evidence for a critical period? | All three periods show significant positive associations (β=0.07).|
+| **Sequence Analysis** | The average difference in log(hsCRP) between individuals belonging to distinct BMI sequence clusters | What distinct patterns of BMI state transitions exist across the life course? Do these patterns predict different inflammation levels? | Compared to the "Normal" (stable normal) reference group, the "Normal-Overweight" sequence shows 0.45-unit higher log(hsCRP), and the "Overweight-Obese" sequence shows 0.79-unit higher log(hsCRP) |
+| **Latent Class Trajectory Modeling** | The average difference in log(hsCRP) between individuals belonging to different latent BMI trajectory classes | What are the most common BMI trajectory patterns? Do individuals following different BMI trajectories have different levels of inflammation? | Compared to "Normal BMI" reference class, "Slightly elevated BMI" shows no significant difference in hsCRP, while "High BMI"  and "High BMI and Increasing" classes show 0.35 and 0.475 higher log(hsCRP) respectively|
+| **Distributed Lag Non-linear Models** | (1) Lag-specific associations between BMI at a given age and log(hsCRP) for specified BMI contrasts relative to a centering value; (2) Cumulative effects aggregating exposure contributions across the exposure window | How does the effect of BMI on inflammation vary across exposure timing (age) and intensity (BMI level)? What is the cumulative effect of sustaining a certain BMI across the life course? | Using BMI=25 as reference, the cumulative effect of maintaining BMI=20 across ages 7-56 is -0.15-unit lower log(hsCRP), while maintaining BMI=30 results in 0.03-unit higher log(hsCRP) |
+| **Structured Life Course Modeling Approach** | The association between log(hsCRP) and the exposure representation corresponding to the selected life course hypothesis (e.g., sensitive period or mobility/change variables) | Which theoretical life course mechanism best explains how BMI affects inflammation? Is it level, change, or duration above threshold? | BMI change early midlife to late midlife shows the strongest association (β=0.117) controlling for mean BMI in life stages|
+
+: Life Course Methods: Estimands, Research Questions, and Example Results {#tbl-s16-summary tbl-colwidths="[12,33,25,30]"}
+
+# Single Numeric Summaries
+
+The single numeric summary approach reduces longitudinal exposure histories to a single scalar quantity intended to summarize exposure burden over a specified period. Depending on how the summary is defined (e.g., mean exposure, cumulative exposure, time above a threshold), this framework may reflect an accumulation-of-risk hypothesis (e.g., mean BMI) or a sensitive period hypothesis (if restricted to a specific window) in which exposure during that window is assumed to have specific influence over later-life outcomes. Here we use the mean BMI across ages 7-56 and include it as an exposure variable in a linear regression predicting log(hsCRP). This is the simplest life course method, treating all time points as equally informative and assuming that a single aggregate captures the relevant exposure signal. @tbl-s3-single presents the fully adjusted regression results, including the effect of mean lifetime BMI on log(hsCRP) alongside all covariates.
+
+```{r}
+
+df.singlesummary <- df.bmi_prediction %>% 
+  group_by(ncdsid) %>%
+  select(ncdsid, pred_bmi, bmi_category) %>%
+  summarise(
+    mean_bmi = mean(pred_bmi, na.rm = TRUE),
+    yrs_normal      = sum(bmi_category == "Normal", na.rm = TRUE),
+    yrs_overweight  = sum(bmi_category == "Overweight", na.rm = TRUE),
+    yrs_obese       = sum(bmi_category == "Obese", na.rm = TRUE)
+  ) %>% 
+  right_join(df.model, by = "ncdsid")
+
+
+bmi_var <- "mean_bmi"
+outcomes <- c("loghsCRP")
+
+# Run single summary model
+model.single <- map(outcomes, function(outcome) {
+  all_covs <- c(bmi_var, covs)
+  formula <- reformulate(all_covs, response = outcome)
+
+  df.singlesummary %>%
+    select(all_of(c(outcome, all_covs))) %>%
+    lm(formula, data = .)
+})
+
+saveRDS(model.single, file = here("Data", "Models", "model.single.rds"))
+
+```
+
+```{r}
+#| label: tbl-s3-single
+#| tbl-cap: "Adjusted linear regression of log(hsCRP) on mean lifetime BMI (ages 7--56), treating the entire trajectory as a single numeric summary."
+model.single %>%
+  .[[1]] %>%
+  tbl_regression(
+    label = list(
+      mean_bmi ~ "Mean BMI",
+      sex ~ "Sex",
+      sweep10_age ~ "Age at hsCRP measurement (years)",
+      educ_qual ~ "Educational qualification",
+      father_bmi ~ "Father's BMI",
+      mother_bmi ~ "Mother's BMI",
+      n646 ~ "Birthweight",
+      n607 ~ "Person's per room",
+      n2383 ~ "Father's occupation"
+    )
+  ) %>%
+  add_significance_stars(hide_ci = FALSE) %>%
+  bold_p() %>%
+  add_glance_table() %>%
+  bold_labels()
+```
+
+<hr style="border: 2px solid black;">
+
+# Time Period Comparisons
+
+Rather than collapsing exposure across the entire life span or a subset thereof, this approach partitions the life course into discrete windows intended to correspond to theoretically meaningful stages (e.g., childhood, adolescence, adulthood). Exposure within each period is aggregated using a summary statistic, and these period-specific summaries are included as predictors in regression models in separate models or included simultaneously in a single model. Conditional models estimate associations in each period conditional on exposure in other periods, allowing comparisons of relative importance across life stages. Because the conditioning set determines the contrast being estimated, interpretation depends on which life stages are included in the model.
+
+Here the life course is divided into early life (ages 7--25), early midlife (ages 26--40), and late midlife (ages 41--56), and BMI exposure within each period is examined as a predictor of log(hsCRP). Two modeling strategies are presented. First, separate models fit one period-specific BMI measure at a time, allowing each period's unconditional association with inflammation to be estimated independently (@tbl-s5a-mean through @tbl-s5d-yrs-latemid). Both continuous (mean BMI) and categorical (years spent in each BMI category) summaries are examined for each period. Second, conditional models enter BMI from multiple periods together, estimating each period's contribution after adjusting for BMI at other life stages (@tbl-s4-conditional). The conditional approach uses a stepwise inclusion strategy with a first model that includes early life alone, then early life plus early midlife, then all three periods to assess how effect estimates attenuate as additional periods are conditioned upon.
+
+## Separate Models by Time Period
+
+```{r}
+df.timeperiod <- df.bmi_prediction %>%
+    group_by(ncdsid) %>%
+    summarise(
+      # Mean BMI by period
+      mean_bmi_early_life = mean(pred_bmi[xage >= 7 & xage <= 25], na.rm = TRUE),
+      mean_bmi_early_midlife = mean(pred_bmi[xage > 25 & xage <= 40], na.rm = TRUE),
+      mean_bmi_late_midlife = mean(pred_bmi[xage > 40 & xage <= 60], na.rm = TRUE),
+
+      # Years in each BMI category - Early life (7-25)
+      yrs_normal_earlylife = sum(bmi_category == "Normal" & xage >= 7 & xage <= 25, na.rm = TRUE),
+      yrs_overweight_earlylife = sum(bmi_category == "Overweight" & xage >= 7 & xage <= 25, na.rm = TRUE),
+      yrs_obese_earlylife = sum(bmi_category == "Obese" & xage >= 7 & xage <= 25, na.rm = TRUE),
+
+      # Years in each BMI category - Early midlife (25-40)
+      yrs_normal_early_midlife = sum(bmi_category == "Normal" & xage > 25 & xage <= 40, na.rm = TRUE),
+      yrs_overweight_early_midlife = sum(bmi_category == "Overweight" & xage > 25 & xage <= 40, na.rm = TRUE),
+      yrs_obese_early_midlife = sum(bmi_category == "Obese" & xage > 25 & xage <= 40, na.rm = TRUE),
+
+      # Years in each BMI category - Late midlife (41-60)
+      yrs_normal_late_midlife = sum(bmi_category == "Normal" & xage > 40 & xage <= 60, na.rm = TRUE),
+      yrs_overweight_late_midlife = sum(bmi_category == "Overweight" & xage > 40 & xage <= 60, na.rm = TRUE),
+      yrs_obese_late_midlife = sum(bmi_category == "Obese" & xage > 40 & xage <= 60, na.rm = TRUE)
+    ) %>%
+    right_join(df.model, by = "ncdsid")
+
+# Define the 6 BMI predictors to loop through
+bmi_predictors <- c(
+  "mean_bmi_early_life",
+  "mean_bmi_early_midlife",
+  "mean_bmi_late_midlife",
+  "yrs_normal_earlylife",   
+  "yrs_overweight_earlylife",
+  "yrs_obese_earlylife",
+  "yrs_normal_early_midlife",
+  "yrs_overweight_early_midlife",
+  "yrs_obese_early_midlife",          
+  "yrs_normal_late_midlife",
+  "yrs_overweight_late_midlife",
+  "yrs_obese_late_midlife"
+)
+
+# Run separate time period models and store each model in a list
+models_list.timeperiod <- map(bmi_predictors, function(bmi_var) {
+    all_covs <- c(bmi_var, covs)
+    formula <- reformulate(all_covs, response = "loghsCRP")
+
+    df.timeperiod %>%
+      select(all_of(c("loghsCRP", all_covs))) %>%
+      rename(exposure = all_of(bmi_var)) %>%  # Rename to generic "exposure"
+      lm(reformulate(c("exposure", covs), response = "loghsCRP"), data = .)
+  })
+
+saveRDS(models_list.timeperiod, file = here("Data", "Models", "models_list.timeperiod.rds"))
+
+```
+
+```{r}
+#| label: tbl-s5a-mean
+#| tbl-cap: "Separate adjusted regressions of log(hsCRP) on period-specific mean BMI."
+
+cov_labels <- list(
+  exposure ~ "BMI Exposure",
+  sex ~ "Sex",
+  sweep10_age ~ "Age at hsCRP measurement (years)",
+  educ_qual ~ "Educational qualification",
+  father_bmi ~ "Father's BMI",
+  mother_bmi ~ "Mother's BMI",
+  n646 ~ "Birthweight",
+  n607 ~ "Persons per room",
+  n2383 ~ "Father's occupation"
+)
+
+tbl_merge(
+    tbls = map(models_list.timeperiod[1:3], ~ .x %>%
+      tbl_regression(
+        intercept = FALSE,
+        label = cov_labels
+      ) %>%
+      add_significance_stars() %>%
+      bold_p() %>%
+      bold_labels()
+    ),
+    tab_spanner = c(
+      "**Mean BMI <br> (7-25)**",
+      "**Mean BMI <br> (26-40)**",
+      "**Mean BMI <br> (41-56)**"
+    )
+  ) %>%
+    modify_table_body(
+      ~ .x %>%
+        mutate(
+          is_exposure = variable == "exposure",
+          is_glance = row_type == "glance_statistic"
+        ) %>%
+        arrange(desc(is_exposure), is_glance) %>%
+        select(-is_exposure, -is_glance)
+    )
+```
+
+```{r}
+#| label: tbl-s5b-yrs-early
+#| tbl-cap: "Separate adjusted regressions of log(hsCRP) on years in each BMI category during early life (ages 7-25)."
+
+tbl_merge(
+    tbls = map(models_list.timeperiod[4:6], ~ .x %>%
+      tbl_regression(
+        intercept = FALSE,
+        label = cov_labels
+      ) %>%
+      add_significance_stars() %>%
+      bold_p() %>%
+      bold_labels()
+    ),
+    tab_spanner = c(
+      "**Yrs Normal <br> (7-25)**",
+      "**Yrs Overweight <br> (7-25)**",
+      "**Yrs Obese <br> (7-25)**"
+    )
+  ) %>%
+    modify_table_body(
+      ~ .x %>%
+        mutate(
+          is_exposure = variable == "exposure",
+          is_glance = row_type == "glance_statistic"
+        ) %>%
+        arrange(desc(is_exposure), is_glance) %>%
+        select(-is_exposure, -is_glance)
+    )
+```
+
+```{r}
+#| label: tbl-s5c-yrs-earlymid
+#| tbl-cap: "Separate adjusted regressions of log(hsCRP) on years in each BMI category during early midlife (ages 26-40)."
+
+tbl_merge(
+    tbls = map(models_list.timeperiod[7:9], ~ .x %>%
+      tbl_regression(
+        intercept = FALSE,
+        label = cov_labels
+      ) %>%
+      add_significance_stars() %>%
+      bold_p() %>%
+      bold_labels()
+    ),
+    tab_spanner = c(
+      "**Yrs Normal <br> (26-40)**",
+      "**Yrs Overweight <br> (26-40)**",
+      "**Yrs Obese <br> (26-40)**"
+    )
+  ) %>%
+    modify_table_body(
+      ~ .x %>%
+        mutate(
+          is_exposure = variable == "exposure",
+          is_glance = row_type == "glance_statistic"
+        ) %>%
+        arrange(desc(is_exposure), is_glance) %>%
+        select(-is_exposure, -is_glance)
+    )
+```
+
+```{r}
+#| label: tbl-s5d-yrs-latemid
+#| tbl-cap: "Separate adjusted regressions of log(hsCRP) on years in each BMI category during late midlife (ages 41-56)."
+
+tbl_merge(
+    tbls = map(models_list.timeperiod[10:12], ~ .x %>%
+      tbl_regression(
+        intercept = FALSE,
+        label = cov_labels
+      ) %>%
+      add_significance_stars() %>%
+      bold_p() %>%
+      bold_labels()
+    ),
+    tab_spanner = c(
+      "**Yrs Normal <br> (41-56)**",
+      "**Yrs Overweight <br> (41-56)**",
+      "**Yrs Obese <br> (41-56)**"
+    )
+  ) %>%
+    modify_table_body(
+      ~ .x %>%
+        mutate(
+          is_exposure = variable == "exposure",
+          is_glance = row_type == "glance_statistic"
+        ) %>%
+        arrange(desc(is_exposure), is_glance) %>%
+        select(-is_exposure, -is_glance)
+    )
+```
+
+## Conditional Models of Time Periods
+
+```{r}                                                                          
+#| label: tbl-s4-conditional
+#| tbl-cap: "Conditional adjusted regressions of log(hsCRP) with mean BMI from multiple life periods entered jointly, using a stepwise inclusion strategy to assess conditional period-specific effects."
+
+# Define the 3 staggered BMI predictor combinations
+bmi_predictor_sets <- list(
+    "Early Life" = "mean_bmi_early_life",
+    "Early + Early Midlife" = c("mean_bmi_early_life", "mean_bmi_early_midlife"),
+    "All Three Periods" = c("mean_bmi_early_life", "mean_bmi_early_midlife", "mean_bmi_late_midlife")
+  )
+
+# Run conditional time period models and store each table in a list
+models_list.timeperiod.staggered.conditional <- map(bmi_predictor_sets, function(bmi_vars) {
+    all_covs <- c(bmi_vars, covs)
+    formula <- reformulate(all_covs, response = "loghsCRP")
+
+    df.timeperiod %>%
+      select(all_of(c("loghsCRP", all_covs))) %>%
+      lm(formula, data = .)
+  })
+
+saveRDS(models_list.timeperiod.staggered.conditional, file = here("Data", "Models", "models_list.timeperiod.conditional.rds"))
+
+```
+
+```{r}
+cov_labels <- list(
+  mean_bmi_early_life ~ "Mean BMI (7-25)",
+  mean_bmi_early_midlife ~ "Mean BMI (26-40)",
+  mean_bmi_late_midlife ~ "Mean BMI (41-56)",
+  sex ~ "Sex",
+  sweep10_age ~ "Age at hsCRP measurement (years)",
+  educ_qual ~ "Educational qualification",
+  father_bmi ~ "Father's BMI",
+  mother_bmi ~ "Mother's BMI",
+  n646 ~ "Birthweight",
+  n607 ~ "Persons per room",
+  n2383 ~ "Father's occupation"
+)
+
+tbl_merge(
+    tbls = map2(models_list.timeperiod.staggered.conditional, bmi_predictor_sets, function(mod, bmi_vars) {
+      # Filter labels to only include variables in this model
+      model_vars <- c(bmi_vars, covs)
+      model_labels <- cov_labels[sapply(cov_labels, function(x) as.character(x[[2]]) %in% model_vars)]
+
+      mod %>%
+        tbl_regression(
+          intercept = FALSE,
+          label = model_labels
+        ) %>%
+        add_significance_stars(hide_ci = FALSE) %>%
+        bold_p() %>%
+        add_glance_table() %>%
+        bold_labels()
+    }),
+    tab_spanner = names(bmi_predictor_sets) %>% paste0("**", ., "**")
+  ) %>%
+    modify_table_body(
+      ~ .x %>%
+        mutate(
+          is_bmi = variable %in% c("mean_bmi_early_life", "mean_bmi_early_midlife", "mean_bmi_late_midlife"),
+          is_glance = row_type == "glance_statistic"
+        ) %>%
+        arrange(desc(is_bmi), is_glance) %>%
+        select(-is_bmi, -is_glance)
+    )
+```
+
+<hr style="border: 2px solid black;">
+
+# Multiple Informant Model Using General Estimating Equations
+
+The multiple informant approach estimates associations between exposures at different life stages and a single outcome measure in a unified regression framework, treating synthetic copies of the outcome as repeated measures [@horton1999; @litman2006; @sanchez2011]. Estimation can be conducted using generalized estimating equations or maximum likelihood approaches [@bather2023; @litman2007]. Including the period indicators, BMI, and their interaction together quantifies differences in the exposure association across periods.
+
+Here, the data are reshaped to long format, with each participant contributing three rows (one per period: early life, early midlife, and late midlife). The GEE model includes a period-by-BMI interaction term, enabling a formal test of whether the association between BMI and log(hsCRP) varies across life stages. An independence working correlation structure is specified, as the repeated measures here represent summary statistics from different life windows. @tbl-s5-gee reports the estimated main effects of BMI and period, the interaction terms, and all covariates. Linear hypothesis tests are conducted to compute the BMI--inflammation association in each period, with results presented in the main text.
+
+```{r}
+library(geepack)
+library(geeM)
+
+# Reshape the data to long format for GEE, keeping only necessary variables and ensuring complete cases for hsCRP and covariates
+df.gee <- df.timeperiod %>%
+  select(ncdsid, loghsCRP,
+         mean_bmi_early_life,
+         mean_bmi_early_midlife,
+         mean_bmi_late_midlife,
+         all_of(covs)) %>%
+  drop_na(loghsCRP, all_of(covs)) %>%
+  group_by(ncdsid) %>%
+  nest() %>%
+  ungroup() %>%
+  unnest() %>%
+  pivot_longer(
+    cols = starts_with("mean_bmi"),
+    names_to = "window",
+    names_prefix = "mean_bmi_",
+    values_to = "bmi"
+  ) %>%
+  mutate(
+    ncdsid_numeric = as.numeric(factor(ncdsid))
+  ) %>%
+  relocate(ncdsid_numeric, .after = "ncdsid")
+
+# Run the gee model
+gee_model <- geeglm(
+    loghsCRP ~ window * bmi + sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+    id = ncdsid_numeric,
+    data = df.gee,
+    family = gaussian(),
+    corstr = "independence"
+  )
+
+saveRDS(gee_model, file = here("Data", "Models", "gee_model.rds"))
+
+```
+
+```{r}
+#| label: tbl-s5-gee
+#| tbl-cap: "GEE regression of log(hsCRP) on period-specific BMI with a period-by-BMI interaction, testing whether the BMI--inflammation association differs across early life, early midlife, and late midlife."
+gee_labels <- list(
+  window ~ "Period",
+  bmi ~ "BMI",
+  `window:bmi` ~ "Period × BMI",
+  sex ~ "Sex",
+  sweep10_age ~ "Age at hsCRP measurement (years)",
+  educ_qual ~ "Educational qualification",
+  father_bmi ~ "Father's BMI",
+  mother_bmi ~ "Mother's BMI",
+  n646 ~ "Birthweight",
+  n607 ~ "Persons per room",
+  n2383 ~ "Father's occupation"
+)
+
+gee_model %>%
+  tbl_regression(
+    label = gee_labels,
+    include = c(window, bmi, `window:bmi`, sex, sweep10_age, educ_qual,
+                father_bmi, mother_bmi, n646, n607, n2383)
+  ) %>%
+  add_significance_stars(hide_ci = FALSE) %>%
+  bold_p() %>%
+  bold_labels()
+```
+
+<hr style="border: 2px solid black;">
+
+# Sequence Analysis
+
+Sequence analysis represents life course exposure as an ordered series of categorical states and groups individuals based on similarities in these state sequences using distance metrics and clustering algorithms [@aisenbrey2010; @elsenburg2024]. The resulting sequence clusters can then be used as categorical predictors in regression models to estimate differences in outcomes across trajectory patterns. Pairwise dissimilarities between sequences were computed using optimal matching, and Ward's hierarchical clustering was applied to the resulting distance matrix to identify groups of individuals with similar BMI state trajectories. Analyses were conducted using the `TraMineR` and `cluster` packages in R [@gabadinho2025]. Sequence index plots are presented for solutions ranging from 2 to 6 clusters (@fig-s3-seq-2cl through @fig-s7-seq-6cl), along with the full unpartitioned sample (@fig-s2-seq-all). @fig-s8-cluster-quality displays five cluster quality metrics (ASW, Calinski-Harabasz, Hubert's Gamma, Point Biserial Correlation, and R-squared) across cluster solutions to guide the choice of the optimal number of groups. Based on these diagnostics, a 3-cluster solution is selected and the resulting trajectory class membership is used as a categorical predictor of log(hsCRP) in a fully adjusted regression model (@tbl-s6-sequence).
+
+```{r}
+library(TraMineR)
+library(cluster)
+library(ggseqplot)
+
+# Define the sequence data for BMI categories across ages, pivoting to wide format and merging with the main dataset
+df.sequence  <- df.bmi_prediction %>%
+  select(ncdsid, xage, bmi_category) %>%
+  pivot_wider(
+    names_from = xage,
+    names_prefix = "age_",
+    values_from = bmi_category
+  ) %>% 
+  right_join(df.model, by = "ncdsid")
+
+bmi_levels <- c("Normal", "Overweight", "Obese")
+
+# Create the sequence object with defined labels and colors
+bmi_seq <- df.sequence %>%
+  select(starts_with("age_")) %>%
+  seqdef(
+    alphabet = bmi_levels,
+    states = bmi_levels,
+    labels = bmi_levels,
+    cpal = c("forestgreen", "goldenrod", "firebrick")
+  )
+
+# Define the distance matrix using the optimal matching method and perform hierarchical clustering using ward's method
+dist.om1 <- seqdist(bmi_seq, method = "OM", indel = 1, sm = "TRATE")
+clusters <- agnes(dist.om1, diss = TRUE, method = "ward")
+```
+
+
+```{r}
+#| label: fig-s2-seq-all
+#| fig-cap: "Sequence index plot displaying each individual's BMI category trajectory (Normal, Overweight, Obese) across ages 7--56, sorted by onset of first state transition."
+ggseqiplot(bmi_seq, sortv = "from.start")
+```
+
+```{r}
+#| label: fig-s3-seq-2cl
+#| fig-cap: "Sequence index plots of BMI category trajectories stratified by a 2-cluster solution from hierarchical clustering with optimal matching distances."
+# 2 Clusters
+cl1.2 <- cutree(clusters, k = 2)
+cl1.2fac <- factor(cl1.2, labels = paste("Type", 1:2))
+# seqIplot(bmi_seq, group = cl1.2fac, sortv = "from.start")
+
+ggseqiplot(bmi_seq, group = cl1.2fac, sortv = "from.start")
+
+```
+
+```{r}
+#| label: fig-s4-seq-3cl
+#| fig-cap: "Sequence index plots of BMI category trajectories stratified by a 3-cluster solution, identifying Normal BMI, Normal-to-Overweight, and Overweight-to-Obese trajectory groups."
+# 3 Clusters
+cl1.3 <- cutree(clusters, k = 3)
+cl1.3fac <- factor(cl1.3, labels = paste("Type", 1:3))
+# seqIplot(bmi_seq, group = cl1.3fac, sortv = "from.start")
+
+ggseqiplot(bmi_seq, group = cl1.3fac, sortv = "from.start")       
+
+```
+
+```{r}
+#| label: fig-s5-seq-4cl
+#| fig-cap: "Sequence index plots of BMI category trajectories stratified by a 4-cluster solution from hierarchical clustering."
+# 4 Clusters
+cl1.4 <- cutree(clusters, k = 4)
+cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:4))
+# seqIplot(bmi_seq, group = cl1.4fac, sortv = "from.start")
+
+ggseqiplot(bmi_seq, group = cl1.4fac, sortv = "from.start")
+```
+
+```{r}
+#| label: fig-s6-seq-5cl
+#| fig-cap: "Sequence index plots of BMI category trajectories stratified by a 5-cluster solution from hierarchical clustering."
+# 5 Clusters
+cl1.5 <- cutree(clusters, k = 5)
+cl1.5fac <- factor(cl1.5, labels = paste("Type", 1:5))
+# seqIplot(bmi_seq, group = cl1.5fac, sortv = "from.start")
+
+ggseqiplot(bmi_seq, group = cl1.5fac, sortv = "from.start")
+```
+
+```{r}
+#| label: fig-s7-seq-6cl
+#| fig-cap: "Sequence index plots of BMI category trajectories stratified by a 6-cluster solution from hierarchical clustering."
+# 6 Clusters
+cl1.6 <- cutree(clusters, k = 6)
+cl1.6fac <- factor(cl1.6, labels = paste("Type", 1:6))
+# seqIplot(bmi_seq, group = cl1.6fac, sortv = "from.start",with.legend = FALSE)
+
+ggseqiplot(bmi_seq, group = cl1.6fac, sortv = "from.start")
+```
+
+## Determining Number of Clusters
+
+```{r}
+#| label: fig-s8-cluster-quality
+#| fig-cap: "Cluster quality metrics (ASW, Calinski-Harabasz, Hubert's Gamma, Point Biserial Correlation, and R-squared) across 2- to 6-cluster solutions to guide selection of the optimal number of BMI trajectory groups."
+library(WeightedCluster)
+
+# Create a named list of clustering results
+cluster_list <- list(
+  "2" = cl1.2,
+  "3" = cl1.3,
+  "4" = cl1.4,
+  "5" = cl1.5,
+  "6" = cl1.6
+)
+
+# Apply wcClusterQuality and extract key metrics
+cluster_metrics <- map_dfr(names(cluster_list), function(k) {
+  res <- wcClusterQuality(dist.om1, cluster_list[[k]])
+  tibble(
+    k = as.integer(k),
+    ASW = res$stats["ASW"],
+    CH = res$stats["CH"],
+    R2 = res$stats["R2"],
+    PBC = res$stats["PBC"],
+    HG = res$stats["HG"]
+  )
+})
+
+# Reshape for plotting
+long_metrics <- cluster_metrics %>%
+  pivot_longer(-k, names_to = "metric", values_to = "value")
+
+# Plot
+ggplot(long_metrics, aes(x = k, y = value)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~ metric, scales = "free_y") +
+  labs(x = "Number of clusters", y = "Value", title = "Cluster Quality Metrics") +
+  theme_minimal()
+
+```
+
+-   ASW (Average Silhouette Width): Measures how similar each observation is to its own cluster compared to other clusters; values closer to 1 indicate better clustering.
+
+-   CH (Calinski-Harabasz Index / Pseudo F Statistic): Ratio of between-cluster variance to within-cluster variance based on the distance matrix.; higher values suggest more distinct clusters.
+
+-   HG (Hubert’s Gamma): Measures the correlation between the distances in the data and a binary matrix indicating whether points are in the same cluster (0) or not (1); values closer to 1 reflect stronger clustering structure.
+
+-   PBC (Point Biserial Correlation): Measures correlation between the pairwise distances and a binary cluster membership indicator (same cluster vs. different cluster); higher is better.
+
+-   R2 (Explained Discrepancy): Indicates the proportion of total variation explained by the clustering; values near 1 are ideal.
+
+## Predicting Log hsCRP with 4 Sequence Trajectories
+
+```{r}
+# Merge the 3-cluster variable back into the main dataset for regression analysis 
+df.sequence.pred <- df.sequence %>%
+  select(ncdsid) %>%
+  cbind(cl1.3) %>%
+  rename(TrajectoryClass = cl1.3) %>% 
+  mutate(TrajectoryClass = factor(TrajectoryClass,
+                                  levels = c(3, 1, 2),
+                                  labels = c(
+                                    "Normal BMI", "Normal-Overweight", "Overweight-Obese"
+                                  ))) %>%
+  right_join(df.model, by = "ncdsid")
+
+bmi_var <- "TrajectoryClass"
+outcomes <- c("loghsCRP")
+
+model.sequence <- map(outcomes, function(outcome) {
+  all_covs <- c(bmi_var, covs)
+  formula <- reformulate(all_covs, response = outcome)
+  
+  df.sequence.pred %>%
+    select(all_of(c(outcome, all_covs))) %>%
+    lm(formula, data = .)
+})
+
+saveRDS(model.sequence, file = here("Data", "Models", "model.sequence.rds"))
+```
+
+```{r}
+#| label: tbl-s6-sequence
+#| tbl-cap: "Adjusted linear regression of log(hsCRP) on 3-cluster BMI sequence membership, with the Normal BMI cluster as the reference group."
+model.sequence %>%
+  .[[1]] %>%
+  tbl_regression(
+    label = list(
+      TrajectoryClass ~ "Sequence Class",
+      sex ~ "Sex",
+      sweep10_age ~ "Age at hsCRP measurement (years)",
+      educ_qual ~ "Educational qualification",
+      father_bmi ~ "Father's BMI",
+      mother_bmi ~ "Mother's BMI",
+      n646 ~ "Birthweight",
+      n607 ~ "Persons per room",
+      n2383 ~ "Father's occupation"
+    )
+  ) %>%
+  add_significance_stars(hide_ci = FALSE) %>%
+  bold_p() %>%
+  add_glance_table() %>%
+  bold_labels()
+```
+
+<hr style="border: 2px solid black;">
+
+# Latent Class Trajectory Modeling
+
+Latent class trajectory modeling refers to a family of model-based approaches that identify unobserved subgroups of individuals following similar exposure trajectories over time using finite mixture models [@herle2020; @vandernest2020]. These models estimate class-specific trajectory shapes and assign individuals probabilistically to latent trajectory classes. Estimation is typically conducted using maximum likelihood, and distal outcomes assessed using a range of approaches [@bakk2021; @nylundgibson2019].
+
+The growth mixture model (GMM) is a type of latent class trajectory model that allows individual-level random effects within classes, thereby relaxing the assumption that all individuals within a class follow identical trajectories. We additionally allowed class-specific residual variance-covariance structures, enabling within-class variability in BMI to differ across latent classes. The large number of repeated time points in the observed BMI data substantially increased model parameterization, motivating the use of decade-based age averages. Using the `lcmm` package in R [@proustlima2017], growth mixture models were fit with three functional forms for the time trend: linear, logarithmic, and quantile spline, and with varying numbers of latent classes (1 to 6). Spline models used three internal knots at quantiles of the age distribution to allow flexible nonlinear shapes. Model fit was evaluated using log-likelihood, AIC, BIC, entropy, class proportions, and substantive interpretability. @tbl-s7-fit compares model fit statistics across all specifications to guide the selection of the best-fitting model. A 4-class logarithmic model is selected based on these criteria.
+
+To relate trajectory class membership to inflammation, two approaches are employed. First, a naive 3-step method assigns individuals to their most likely class and enters this assignment directly as a categorical predictor of log(hsCRP) (@tbl-s7-lca). This approach ignores classification uncertainty, potentially biasing effect estimates toward zero. Second, a maximum likelihood (ML) 3-step method is implemented manually based on Vermunt 2017, incorporating the posterior class probability matrix and the classification error matrix to account for misclassification when estimating class-specific means of the covariate-adjusted outcome (@tbl-s8-lca-ml). The ML approach provides covariate-adjusted contrasts between trajectory classes with correct standard errors.
+
+```{r}
+library(lcmm)
+
+# Define the data for latent class growth modeling, calculating mean BMI within defined age groups and merging with covariates
+df.lgm <- df.bmi_prediction %>%
+  right_join(df.model, by = "ncdsid") %>% 
+  mutate(
+    age_group = case_when(
+      xage > 6  & xage <= 20 ~ 13.5,
+      xage > 20 & xage <= 30 ~ 25,
+      xage > 30 & xage <= 40 ~ 35,
+      xage > 40 & xage <= 50 ~ 45,
+      xage > 50 & xage <= 60 ~ 55,
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  group_by(ncdsid, age_group) %>%
+  summarise(mean_bmi = mean(pred_bmi, na.rm = TRUE)) %>%
+  left_join(  # Reattach time-invariant covariates
+    df.model %>%
+      select(ncdsid, loghsCRP, all_of(covs)) %>% 
+      mutate(n607 = as_factor(n607)) %>%
+      zap_label(),
+    by = "ncdsid"
+  ) %>% 
+  mutate(ncdsid = ncdsid %>%
+           str_extract("\\d+") %>%
+           as.numeric()) %>% 
+  ungroup() %>% 
+  as.data.frame()
+```
+
+```{r}
+set.seed(1234)
+
+# Fit latent class growth models with 1 to 4 classes, using a linear specification for age and allowing for class-specific trajectories
+
+# gmmd.bmi.cont.1.lin <- lcmm::hlme(fixed = mean_bmi ~ 1 + age_group ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 1,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            verbose=F)
+
+# gmmd.bmi.cont.2.lin <- lcmm::hlme(fixed = mean_bmi ~ 1 + age_group,
+#            mixture = ~ 1 + age_group,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 2,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.lin,
+#            verbose=F)
+
+# gmmd.bmi.cont.3.lin <- hlme(fixed = mean_bmi ~ 1 + age_group,
+#            mixture = ~ 1 + age_group,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 3,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.lin,
+#            verbose=F)
+
+# gmmd.bmi.cont.4.lin <- hlme(fixed = mean_bmi ~ 1 + age_group,
+#            mixture = ~ 1 + age_group,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 4,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.lin,
+#            verbose=F)
+
+# saveRDS(gmmd.bmi.cont.1.lin,here("Data/gmmd.bmi.cont.1.lin.rds"))
+# saveRDS(gmmd.bmi.cont.2.lin,here("Data/gmmd.bmi.cont.2.lin.rds"))
+# saveRDS(gmmd.bmi.cont.3.lin,here("Data/gmmd.bmi.cont.3.lin.rds"))
+# saveRDS(gmmd.bmi.cont.4.lin,here("Data/gmmd.bmi.cont.4.lin.rds"))
+
+gmmd.bmi.cont.1.lin <- readRDS(here("Data/gmmd.bmi.cont.1.lin.rds"))
+gmmd.bmi.cont.2.lin <- readRDS(here("Data/gmmd.bmi.cont.2.lin.rds"))
+gmmd.bmi.cont.3.lin <- readRDS(here("Data/gmmd.bmi.cont.3.lin.rds"))
+gmmd.bmi.cont.4.lin <- readRDS(here("Data/gmmd.bmi.cont.4.lin.rds"))
+
+# Create a summary table of model fit statistics for the linear models
+gmmfit.cont.lin <- lcmm::summarytable(
+  gmmd.bmi.cont.1.lin, gmmd.bmi.cont.2.lin, gmmd.bmi.cont.3.lin, gmmd.bmi.cont.4.lin,
+  which = c("G", "loglik", "AIC", "BIC", "SABIC", "entropy", "%class"),
+  display = FALSE
+) %>%
+  as_tibble() %>%
+  mutate(entropy = round(entropy, digits = 2),
+         Form = "Linear")
+
+
+```
+
+```{r}
+set.seed(1234)
+
+# Fit latent class growth models with 1 to 6 classes, using a log specification for age and allowing for class-specific trajectories
+
+# gmmd.bmi.cont.1.log <- lcmm::hlme(fixed = mean_bmi ~ 1 + log(age_group) ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 1,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            verbose=F)
+
+# gmmd.bmi.cont.2.log <- lcmm::hlme(fixed = mean_bmi ~ 1 + log(age_group) ,
+#            mixture = ~ 1 + log(age_group) ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 2,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.log,
+#            verbose=F)
+
+
+# gmmd.bmi.cont.3.log <- hlme(fixed = mean_bmi ~ 1 + log(age_group) ,
+#            mixture = ~ 1 + log(age_group) ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 3,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.log,
+#            verbose=F)
+
+# gmmd.bmi.cont.4.log <- hlme(fixed = mean_bmi ~ 1 + log(age_group) ,
+#            mixture = ~ 1 + log(age_group) ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 4,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.log,
+#            verbose=F)
+
+# gmmd.bmi.cont.5.log <- hlme(fixed = mean_bmi ~ 1 + log(age_group) ,
+#            mixture = ~ 1 + log(age_group) ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 5,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.log,
+#            verbose=F)
+
+# gmmd.bmi.cont.6.log <- hlme(fixed = mean_bmi ~ 1 + log(age_group) ,
+#            mixture = ~ 1 + log(age_group) ,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 6,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1.log,
+#            verbose=F)
+
+# saveRDS(gmmd.bmi.cont.1.log,here("Data/gmmd.bmi.cont.1.log.rds"))
+# saveRDS(gmmd.bmi.cont.2.log,here("Data/gmmd.bmi.cont.2.log.rds"))
+# saveRDS(gmmd.bmi.cont.3.log,here("Data/gmmd.bmi.cont.3.log.rds"))
+# saveRDS(gmmd.bmi.cont.4.log,here("Data/gmmd.bmi.cont.4.log.rds"))
+# saveRDS(gmmd.bmi.cont.5.log,here("Data/gmmd.bmi.cont.5.log.rds"))
+# saveRDS(gmmd.bmi.cont.6.log,here("Data/gmmd.bmi.cont.6.log.rds"))
+
+gmmd.bmi.cont.1.log <- readRDS(here("Data/gmmd.bmi.cont.1.log.rds"))
+gmmd.bmi.cont.2.log <- readRDS(here("Data/gmmd.bmi.cont.2.log.rds"))
+gmmd.bmi.cont.3.log <- readRDS(here("Data/gmmd.bmi.cont.3.log.rds"))
+gmmd.bmi.cont.4.log <- readRDS(here("Data/gmmd.bmi.cont.4.log.rds"))
+gmmd.bmi.cont.5.log <- readRDS(here("Data/gmmd.bmi.cont.5.log.rds"))
+gmmd.bmi.cont.6.log <- readRDS(here("Data/gmmd.bmi.cont.6.log.rds"))
+
+gmmfit.cont.log <- lcmm::summarytable(
+  gmmd.bmi.cont.1.log, gmmd.bmi.cont.2.log, gmmd.bmi.cont.3.log,
+  gmmd.bmi.cont.4.log, gmmd.bmi.cont.5.log, gmmd.bmi.cont.6.log,
+  which = c("G", "loglik", "AIC", "BIC", "SABIC", "entropy", "%class"),
+  display = FALSE
+) %>%
+  as_tibble() %>%
+  mutate(entropy = round(entropy, digits = 2),
+         Form = "Log")
+
+
+```
+
+```{r}
+set.seed(1234)
+
+# Fit latent class growth models with 1 to 4 classes, using a spline specification for age and allowing for class-specific trajectories
+
+# gmmd.bmi.cont.1 <- lcmm::lcmm(fixed = mean_bmi ~ 1 + age_group ,
+#            link='3-quant-splines',
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 1,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            verbose=F)
+
+# gmmd.bmi.cont.2 <- lcmm::lcmm(fixed = mean_bmi ~ 1 + age_group,
+#           link='3-quant-splines',
+#            mixture = ~ 1 + age_group,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 2,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1,
+#            verbose=F)
+
+
+# gmmd.bmi.cont.3 <- lcmm(fixed = mean_bmi ~ 1 + age_group,
+#                         link='3-quant-splines',
+#            mixture = ~ 1 + age_group,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 3,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1,
+#            verbose=F)
+
+# gmmd.bmi.cont.4 <- lcmm(fixed = mean_bmi ~ 1 + age_group,
+#                         link='3-quant-splines',
+#            mixture = ~ 1 + age_group,
+#            random = ~1 + age_group,
+#            subject = "ncdsid",
+#            ng = 4,
+#            nwg = T,
+#            idiag = FALSE,
+#            data = df.lgm,
+#            B=gmmd.bmi.cont.1,
+#            verbose=F)
+
+# saveRDS(gmmd.bmi.cont.1,here("Data/gmmd.bmi.cont.1.rds"))
+# saveRDS(gmmd.bmi.cont.2,here("Data/gmmd.bmi.cont.2.rds"))
+# saveRDS(gmmd.bmi.cont.3,here("Data/gmmd.bmi.cont.3.rds"))
+# saveRDS(gmmd.bmi.cont.4,here("Data/gmmd.bmi.cont.4.rds"))
+
+gmmd.bmi.cont.1 <- readRDS(here("Data/gmmd.bmi.cont.1.rds"))
+gmmd.bmi.cont.2 <- readRDS(here("Data/gmmd.bmi.cont.2.rds"))
+gmmd.bmi.cont.3 <- readRDS(here("Data/gmmd.bmi.cont.3.rds"))
+gmmd.bmi.cont.4 <- readRDS(here("Data/gmmd.bmi.cont.4.rds"))
+
+gmmfit.cont.spline <- lcmm::summarytable(
+  gmmd.bmi.cont.1, gmmd.bmi.cont.2, gmmd.bmi.cont.3, gmmd.bmi.cont.4,
+  which = c("G", "loglik", "AIC", "BIC", "SABIC", "entropy", "%class"),
+  display = FALSE
+) %>%
+  as_tibble() %>%
+  mutate(entropy = round(entropy, digits = 2),
+         Form = "Spline")
+
+```
+
+## Latent Class Trajectory Model Fit
+
+```{r}
+#| label: tbl-s7-fit
+#| tbl-cap: "Model fit statistics (log-likelihood, AIC, BIC, SABIC, and entropy) for latent class trajectory models with linear, logarithmic, and spline functional forms across varying numbers of classes."
+bind_rows(gmmfit.cont.lin, gmmfit.cont.log, gmmfit.cont.spline) %>%
+    relocate(Form) %>%
+    gt(groupname_col = "Form") %>%
+    tab_header(title = "Growth Mixture Model Fit Comparison") %>%
+    tab_options(
+      heading.background.color = "gray",
+      heading.title.font.size = px(16),
+      heading.title.font.weight = "bold",
+      table.font.size = px(12)
+    ) %>%
+    cols_label(
+      G = "Functional Form",
+      loglik = "Log Likelihood",
+      entropy = "Relative Entropy",
+      BIC = "BIC",
+      SABIC = "SABIC"
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "lightgray"),
+        cell_text(weight = "bold")
+      ),
+      locations = cells_body(
+        rows = Form == "Log" & G == 4
+      )
+    )
+```
+
+## Predicting Log hsCRP with 3-class Logarithmic LCTM (Naive 3-step method - No Class Uncertainity)
+
+```{r}
+
+bmi_var <- "TrajectoryClass"
+outcomes <- c("loghsCRP")
+
+# Run LCTM models
+model.lca <- map(outcomes, function(outcome) {
+  all_covs <- c(bmi_var, covs)
+  formula <- reformulate(all_covs, response = outcome)
+  
+gmmd.bmi.cont.4.log$pprob %>%
+  select(ncdsid, class) %>% 
+  mutate(
+    TrajectoryClass = factor(class, 
+                           levels = c(1, 2, 3, 4),
+                           labels = c("Normal BMI",
+                                      "Slightly elevated BMI", 
+                                      "High BMI",
+                                      "High BMI and Increasing"
+                                      ))
+  ) %>%
+  right_join(df.lgm, by = 'ncdsid') %>% 
+    select(-age_group) %>% 
+    distinct() %>% 
+    select(all_of(c(outcome, all_covs))) %>%
+    lm(formula, data = .) 
+})
+
+saveRDS(model.lca, file = here("Data", "Models", "model.LCA.rds"))
+```
+
+```{r}
+#| label: tbl-s7-lca
+#| tbl-cap: "Adjusted linear regression of log(hsCRP) on 4-class logarithmic LCTM membership using naive modal class assignment (no correction for classification uncertainty)."
+model.lca %>%
+  .[[1]] %>%
+  tbl_regression(
+    label = list(
+      TrajectoryClass ~ "Trajectory Class",
+      sex ~ "Sex",
+      sweep10_age ~ "Age at hsCRP measurement (years)",
+      educ_qual ~ "Educational qualification",
+      father_bmi ~ "Father's BMI",
+      mother_bmi ~ "Mother's BMI",
+      n646 ~ "Birthweight",
+      n607 ~ "Persons per room",
+      n2383 ~ "Father's occupation"
+    )
+  ) %>%
+  add_significance_stars(hide_ci = FALSE) %>%
+  bold_p() %>%
+  add_glance_table() %>%
+  bold_labels()
+```
+
+## Predicting Log hsCRP with 3-Class Logarithmic LCTM Using Manual ML Method
+
+```{r}
+# Implementing the ML-3 Step Method Manually to Account for Classification Uncertainty
+
+# Step 1. Join with posterior class probabilities from hlme
+distal_var <- "loghsCRP"
+
+df_person <- df.lgm %>%
+  select(ncdsid, all_of(distal_var), all_of(covs)) %>%
+  distinct()
+
+pp <- gmmd.bmi.cont.4.log$pprob %>%
+  select(ncdsid, class, starts_with("prob"))
+
+# how many classes
+Tcl <- length(grep("^prob", names(pp)))
+prob_cols <- paste0("prob", 1:Tcl)
+
+analysis_df <- pp %>%
+  inner_join(df_person, by = "ncdsid") %>%
+  drop_na(!!sym(distal_var))
+
+# posterior matrix tau_it = P(X=t | Y_i)
+tau <- as.matrix(analysis_df[, prob_cols])  # N x T
+Wobs <- analysis_df$class                   # observed assigned class W_i
+N    <- nrow(analysis_df)
+Tcl  <- ncol(tau)
+
+# Step 2. Classification error matrix P(W = s | X = t)
+
+# N x T indicator matrix: I(W_i = s)
+W_mat <- sapply(1:Tcl, function(s) as.numeric(Wobs == s))  # N x T
+
+R <- matrix(NA_real_, nrow = Tcl, ncol = Tcl,
+            dimnames = list(paste0("X", 1:Tcl),
+                            paste0("W", 1:Tcl)))
+
+for (t in 1:Tcl) {
+  denom_t <- sum(tau[, t])
+  for (s in 1:Tcl) {
+    numer_ts <- sum(tau[, t] * W_mat[, s])
+    R[t, s] <- numer_ts / denom_t
+  }
+}
+
+# R
+# rowSums(R)  # should be ~ 1 for each t
+
+pi_hat <- colMeans(tau)   # P(X=t)
+
+# Step 3. Covariate adjustment by residualizing the distal outcome
+
+form_cov <- reformulate(covs, response = distal_var)
+
+lm_cov <- lm(form_cov, data = analysis_df)
+
+analysis_df$Ztilde <- resid(lm_cov)   # covariate adjusted residuals
+
+# Vectors for ML step
+Ztilde <- analysis_df$Ztilde
+Wobs   <- analysis_df$class
+
+# Step 4. Define the ML 3-step likelihood
+
+logLik_ml3 <- function(par, Ztilde, Wobs, pi_hat, R) {
+  T <- length(pi_hat)
+  mu <- par[1:T]
+  log_sigma <- par[T + 1]
+  sigma <- exp(log_sigma)
+  
+  N <- length(Ztilde)
+  ll <- 0
+  
+  for (i in 1:N) {
+    s <- Wobs[i]  # observed assigned class (1..T)
+    # density of Ztilde_i under each class t (this is the normal distribution assumption)
+    dens_vec <- dnorm(Ztilde[i], mean = mu, sd = sigma, log = FALSE)
+    # contribution for each class t
+    comp <- pi_hat * dens_vec * R[, s]
+    p_i <- sum(comp)
+    if (!is.finite(p_i) || p_i <= .Machine$double.eps) {
+      p_i <- .Machine$double.eps
+    }
+    ll <- ll + log(p_i)
+  }
+  
+  return(-ll)   # negative log likelihood
+}
+
+# Step 5. Optimize the ML 3-step likelihood
+
+mu0 <- tapply(analysis_df$Ztilde, analysis_df$class, mean)
+log_sigma0 <- log(sd(analysis_df$Ztilde))
+
+par0 <- c(mu0, log_sigma0)
+
+fit_ml3 <- optim(
+  par    = par0,
+  fn     = logLik_ml3,
+  Ztilde = Ztilde,
+  Wobs   = Wobs,
+  pi_hat = pi_hat,
+  R      = R,
+  method = "BFGS",
+  hessian = TRUE
+)
+
+# fit_ml3$convergence  # should be 0 if successful
+
+par_hat <- fit_ml3$par
+Tcl <- length(pi_hat)
+
+mu_hat      <- par_hat[1:Tcl]          # class specific adjusted means
+log_sigma_h <- par_hat[Tcl + 1]
+sigma_hat   <- exp(log_sigma_h)
+
+vcov_par <- solve(fit_ml3$hessian)
+se_par   <- sqrt(diag(vcov_par))
+
+se_mu        <- se_par[1:Tcl]
+se_log_sigma <- se_par[Tcl + 1]
+se_sigma     <- sigma_hat * se_log_sigma
+
+results_mu <- data.frame(
+  class   = 1:Tcl,
+  mu_hat  = mu_hat,
+  se_mu   = se_mu,
+  z_value = mu_hat / se_mu,
+  p_value = 2 * pnorm(abs(mu_hat / se_mu), lower.tail = FALSE)
+)
+# results_mu
+
+
+# Step 6. Optional: pairwise contrasts vs class 1
+
+get_ml3_contrasts <- function(par_hat, vcov_par, ref = 1) {
+  Tcl <- length(par_hat) - 1  # last parameter is log_sigma
+  results <- list()
+  
+  for (t in seq_len(Tcl)) {
+    if (t == ref) next
+    
+    # contrast vector: mu_t - mu_ref
+    c_vec <- rep(0, length(par_hat))
+    c_vec[t]   <- 1
+    c_vec[ref] <- -1
+    
+    # point estimate
+    est <- sum(c_vec * par_hat)
+    
+    # SE
+    se  <- sqrt(t(c_vec) %*% vcov_par %*% c_vec)
+    
+    # z, p, CI
+    z_val <- est / se
+    p_val <- 2 * pnorm(abs(z_val), lower.tail = FALSE)
+    ci_lo <- est - 1.96 * se
+    ci_hi <- est + 1.96 * se
+    
+    results[[length(results) + 1]] <- data.frame(
+      contrast = paste0("class", t, " - class", ref),
+      estimate = est,
+      std_error = se,
+      z_value = z_val,
+      p_value = p_val,
+      CI_lower = ci_lo,
+      CI_upper = ci_hi
+    )
+  }
+  
+  bind_rows(results)
+}
+
+contrasts_tbl <- get_ml3_contrasts(par_hat, vcov_par, ref = 1) 
+
+# Get labeled class contrasts
+contrasts_tbl$contrast <- contrasts_tbl$contrast %>%
+    dplyr::recode(
+      "class2 - class1" = "Slightly elevated BMI",
+      "class3 - class1" = "High BMII",
+      "class4 - class1" = "High BMI and Increasing"
+    ) 
+
+saveRDS(contrasts_tbl, file = here("Data", "Models", "model.LCA.ML.rds"))
+```
+
+```{r}
+#| label: tbl-s8-lca-ml
+#| tbl-cap: "Covariate-adjusted pairwise contrasts of log(hsCRP) between latent trajectory classes using the ML 3-step method, which accounts for classification uncertainty via the posterior probability matrix."
+contrasts_tbl %>%
+    select(-z_value) %>%
+    gt() %>%
+    tab_header(
+      title = "Latent Class Contrasts for log(hsCRP)",
+      subtitle = "Reference: Normal BMI Trajectory"
+    ) %>%
+    cols_label(
+      contrast = "Comparison",
+      estimate = "β",
+      std_error = "SE",
+      p_value = "p",
+      CI_lower = "95% CI LL",
+      CI_upper = "95% CI UL"
+    ) %>%
+    fmt_number(
+      columns = c(estimate, std_error, CI_lower, CI_upper),
+      decimals = 3
+    ) %>%
+    fmt(
+      columns = p_value,
+      fns = function(x) ifelse(x < 0.001, "<0.001", sprintf("%.3f", x))
+    ) %>%
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_body(
+        columns = p_value,
+        rows = p_value < 0.05
+      )
+    ) %>%
+    tab_footnote(
+      footnote = "Estimates adjusted for sex, age at hsCRP measurement, educational qualification, parental BMI, birthweight, persons per room, and father's occupation. Classification uncertainty accounted for using the ML 3-step approach."
+    ) %>%
+    tab_options(
+      table.font.size = px(12),
+      heading.title.font.size = px(16),
+      heading.title.font.weight = "bold"
+    )
+```
+
+<hr style="border: 2px solid black;">
+
+# Distributed Lag Nonlinear Models (DLNM)
+
+Distributed lag nonlinear models (DLNMs) represent life course exposure as a continuous function of both exposure intensity and timing by modeling an exposure-lag response surface using cross-basis functions [@gasparrini2014; @zanobetti2000]. The cumulative effects estimated by DLNMs can be interpreted as the expected difference in log(hsCRP) under sustained BMI levels (e.g., BMI 20 or BMI 30) relative to BMI 25 across adulthood.
+
+All models were fit using the `dlnm` package in R [@gasparrini2025]. This section presents a series of DLNM specifications to evaluate sensitivity to modeling choices. Models were initially fit using BMI data across the full observed age range (ages 7--56), with a grid search over degrees of freedom (1--13) in both the exposure and lag dimensions to select the best-fitting unpenalized specification using AIC (@fig-s9-3d-unpenalized, @fig-s9-dlnm-full-unrestricted), and using penalized P-splines (@fig-s10-3d-penalized, @fig-s10-dlnm-full-penalized). The analysis is then repeated restricting to adult BMI only (ages 18--56) with Winsorized values to reduce the influence of extreme predictions, using both natural cubic splines (@fig-s11-3d-unpenalized, @fig-s11-dlnm-18-unrestricted) and penalized P-splines (@fig-s12-3d-penalized, @fig-s13-dlnm-18-penalized). Penalized models with higher and lower degrees of freedom were compared to assess overfitting and robustness; a final specification with lower degrees of freedom for the lag dimension provides a smoother and less over-fitted surface (@fig-s14-3d-lower, @fig-s15-dlnm-18-lower). Using the selected cross-basis specification, predictions were centered at BMI 25 and summarized as (i) lag-response patterns at fixed BMI values, (ii) exposure-response patterns at selected ages, and (iii) cumulative effects across the adult exposure window.
+
+```{r}
+library(dlnm)
+library(plotly)
+library(patchwork)
+library(gratia)
+library(mgcv)
+set.seed(1234)
+
+# Create a dataset for DLNM analysis
+df.dlnm <- df.bmi_prediction %>%
+  select(-sex) %>%
+  right_join(df.model, by = "ncdsid")
+
+# Reduce to 18+ to focus on adult BMI trajectories
+df.dlnm.18 <- df.dlnm %>%
+  filter(xage >= 18) 
+
+# Windsorize predicted BMI values at the 1st and 99th percentiles to mitigate influence of extreme outliers in the DLNM analysis
+quantiles <- quantile(df.dlnm.18$pred_bmi, c(0.01, 0.99), na.rm = TRUE)
+
+df.dlnm.18.win <- df.dlnm.18 %>% 
+  mutate(pred_bmi = pmax(pmin(pred_bmi, quantiles["99%"]), quantiles["1%"]))
+
+
+```
+
+```{r}
+# Create a function for plotting DLNM Results
+plot_dlnm <- function(pred_obj,
+                        base_age = 7, # Define the base age corresponding to lag 0 (e.g., age 7 corresponds to lag 0, so lag 1 is age 8, etc.)
+                        exposure_vals = c(20, 25, 30, 35), # Define specific exposure values (BMI) to plot in the lag-response curves
+                        ages_to_show = c(18, 30, 40, 50), # Define specific ages to show in the exposure-response curves 
+                        outcome_label = "log(hsCRP)", 
+                        exposure_label = "BMI",
+                        plot_type = "all") {
+
+    # Setup
+    lag_range <- 0:(ncol(pred_obj$matfit) - 1) # Define lag range based on the number of columns in matfit
+    age_labels <- base_age + seq(0, max(lag_range), by = 10) # Define age labels for x-axis in lag-response plots
+    available_vals <- pred_obj$predvar # Get available exposure values from the prediction object
+    exposure_vals <- exposure_vals[exposure_vals %in% available_vals] # Filter exposure values to those available in the prediction object
+
+    # 1. Data for lag-response (p1)
+    df_slices <- map_dfr(exposure_vals, function(val) {
+      row_idx <- which(pred_obj$predvar == val)
+      tibble(
+        lag = lag_range,
+        age = lag + base_age,
+        fit = pred_obj$matfit[row_idx, ],
+        lci = pred_obj$matlow[row_idx, ],
+        uci = pred_obj$mathigh[row_idx, ],
+        exposure = factor(val, levels = exposure_vals)
+      )
+    })
+
+    # 2. Data for exposure-response (p2)
+    exp_range <- seq(min(exposure_vals), max(exposure_vals))
+    exp_range <- exp_range[exp_range >= min(available_vals) & exp_range <= max(available_vals)]
+
+    df_cross <- map_dfr(ages_to_show, function(age_val) {
+      lag_val <- age_val - base_age
+      if(lag_val >= 0 & lag_val <= max(lag_range)) {
+        map_dfr(exp_range, function(val) {
+          closest_idx <- which.min(abs(pred_obj$predvar - val))
+          tibble(
+            age = age_val,
+            exposure = val,
+            fit = pred_obj$matfit[closest_idx, lag_val + 1],
+            lci = pred_obj$matlow[closest_idx, lag_val + 1],
+            uci = pred_obj$mathigh[closest_idx, lag_val + 1]
+          )
+        })
+      }
+    })
+
+    # 3. Data for cumulative (p3) - SEPARATE dataframe
+    df_cumulative <- map_dfr(exposure_vals, function(val) {
+      row_idx <- which(pred_obj$predvar == val)
+      tibble(
+        lag = lag_range,
+        age = lag + base_age,
+        fit = pred_obj$cumfit[row_idx, ],
+        lci = pred_obj$cumlow[row_idx, ],
+        uci = pred_obj$cumhigh[row_idx, ],
+        exposure = factor(val, levels = exposure_vals)
+      )
+    })
+
+    # Base theme
+    theme_dlnm <- theme_minimal(base_size = 11) +
+      theme(strip.text = element_text(size = 10, face = "bold"),
+            legend.position = "none",
+            panel.spacing = unit(1, "lines"),
+            plot.margin = margin(5, 5, 5, 5),
+            axis.title.y = element_text(margin = margin(r = 5)))
+
+    # p1: Lag-response
+    p1 <- ggplot(df_slices, aes(x = age, y = fit)) +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.7) +
+      geom_line(color = "#0072B2", linewidth = 1) +
+      geom_ribbon(aes(ymin = lci, ymax = uci), fill = "gray70", alpha = 0.3) +
+      facet_wrap(~ paste(exposure_label, "=", exposure), ncol = 1, scales = "free_y") +
+      scale_x_continuous(breaks = age_labels, name = "Age") +
+      labs(y = paste("Effect on", outcome_label), title = "Lag-response") +
+      theme_dlnm
+
+    # p2: Exposure-response
+    p2 <- ggplot(df_cross, aes(x = exposure, y = fit)) +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.7) +
+      geom_line(color = "#009E73", linewidth = 1) +
+      geom_ribbon(aes(ymin = lci, ymax = uci), fill = "gray70", alpha = 0.3) +
+      facet_wrap(~ paste("Age =", age), ncol = 1, scales = "free_y") +
+      scale_x_continuous(breaks = seq(min(exp_range), max(exp_range), by = 5), name = exposure_label) +
+      labs(y = paste("Effect on", outcome_label), title = "Exposure-response") +
+      theme_dlnm
+
+    # p3: Cumulative
+    p3 <- ggplot(df_cumulative, aes(x = age, y = fit)) +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.7) +
+      geom_line(color = "#D55E00", linewidth = 1) +
+      geom_ribbon(aes(ymin = lci, ymax = uci), fill = "gray80", alpha = 0.3) +
+      facet_wrap(~ paste(exposure_label, "=", exposure), ncol = 1, scales = "free_y") +
+      scale_x_continuous(breaks = age_labels, name = "Age") +
+      labs(y = paste("Effect on", outcome_label), title = "Cumulative effects") +
+      theme_dlnm
+    # Return based on plot_type
+    if (plot_type == "lag") return(p1)
+    if (plot_type == "exposure") return(p2)
+    if (plot_type == "cumulative") return(p3)
+    if (plot_type == "all") return(p2 + p1 + p3 + plot_layout(axis_titles = "collect"))
+  }
+```
+
+## Full Dataset
+
+### Natural cubic spline in both dimensions with model selection by AIC
+
+```{r}
+#| eval: FALSE
+# Define a grid of degrees of freedom to try
+df.grid <- expand.grid(df.var = 3:13, df.lag = 3:13)
+
+# Set up model storage
+modellist <- list()
+aiclist <- numeric(nrow(df.grid))
+
+# Loop over grid combinations
+for (i in seq_len(nrow(df.grid))) {
+  dfv <- df.grid$df.var[i]
+  dfl <- df.grid$df.lag[i]
+
+  # Create crossbasis
+  cb <- crossbasis(df.dlnm$pred_bmi, 
+                   lag = 50, 
+                   argvar = list(fun = "ns", df = dfv),
+                   arglag = list(fun = "ns", df = dfl))
+
+  # Fit model (no penalization here — pure lm)
+  fit <- lm(loghsCRP ~ cb, data = df.dlnm)
+  
+  # Store model and AIC
+  modellist[[i]] <- fit
+  aiclist[i] <- AIC(fit)
+  
+  cat(sprintf("Model %d: df.var = %d, df.lag = %d --> AIC = %.2f\n", 
+              i, dfv, dfl, aiclist[i]))
+}
+
+# Find best AIC
+best <- which.min(aiclist)
+best.grid <- df.grid[best, ]
+best.model <- modellist[[best]]
+
+cat("\n✔️ Best model using natural splines:\n")
+print(best.grid)
+```
+
+```{r}
+# Create the crossbasis with the best df combination from AIC selection
+cb.bmi <- crossbasis(df.dlnm$pred_bmi, 
+                     lag = 50, 
+                     argvar = list(fun = "ns", df = 11),
+                     arglag = list(fun = "ns", df = 13))
+
+# Fit the DLNM model with the selected crossbasis and covariates
+dlnm.fit <- lm(
+  loghsCRP ~ cb.bmi + sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  data = df.dlnm
+)
+
+pred.cb.bmi <- crosspred(cb.bmi, dlnm.fit, at = 15:50, bylag = 1, cen = 25, cumul = TRUE)
+
+# Define the base age corresponding to lag 0 (e.g., if lag 0 corresponds to age 7, then lag 1 is age 8, etc.)
+base_age <- 7
+
+```
+
+```{r}
+#| label: fig-s9-3d-unpenalized
+#| fig-cap: "Three-dimensional exposure-lag-response surface for the association between BMI and log(hsCRP) across ages 7--56, modeled with AIC-selected natural cubic splines (df.var = 11, df.lag = 13), centered at BMI = 25."
+#| fig-height: 5
+#| fig-width: 5
+
+# Create a grid for the surface plot
+x <- pred.cb.bmi$predvar           # BMI (exposure)
+y <- (0:(ncol(pred.cb.bmi$matfit)-1)) + base_age  # age at exposure
+# Transpose matfit to match dimensions: rows = lag, columns = BMI
+z <- t(pred.cb.bmi$matfit)  # Now: 51 rows (lags) × 41 columns (BMI)
+
+# Create 3D surface plot
+plot_ly(
+  x = ~x,
+  y = ~y,
+  z = ~z,
+  type = "surface",
+  colorscale = "Viridis",
+  showscale = FALSE
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "BMI", showgrid = TRUE, gridwidth = 1),
+      yaxis = list(title = "Age at Exposure", showgrid = TRUE, gridwidth = 1),
+      zaxis = list(title = "Effect on log(hsCRP)", showgrid = TRUE, gridwidth = 1),
+      camera = list(
+        eye = list(x = 1.5, y = 1.5, z = 1.5)
+      )
+    ),
+    title = "Exposure–Lag–Response Surface"
+  )
+
+```
+
+```{r}
+#| label: fig-s9-dlnm-full-unrestricted
+#| fig-cap: "DLNM results for the full age range (7--56) with natural cubic splines: exposure-response curves at selected ages, lag-response curves at selected BMI values, and cumulative effects over the life course."
+#| fig-height: 7
+
+# Call the plotting function with the prediction object from the best model
+plot_dlnm(pred.cb.bmi,
+            base_age = base_age,
+            exposure_vals = c(20, 25, 30, 35),
+            ages_to_show = c(18, 30, 40, 50),
+            outcome_label = "log(hsCRP)",
+            exposure_label = "BMI")
+```
+
+### Penalized DLNM with P-splines in both dimensions
+
+```{r}
+#| eval: FALSE
+library(mgcv)
+# Define DF values to try
+df.grid.pen <- expand.grid(df.var = 4:13, df.lag = 4:13)
+
+# Create list to store models
+modellist <- list()
+edflist <- numeric(nrow(df.grid.pen))
+
+# Loop through each df combination
+for (i in seq_len(nrow(df.grid.pen))) {
+  dfv <- df.grid.pen$df.var[i]
+  dfl <- df.grid.pen$df.lag[i]
+  
+  # Define crossbasis
+  cb <- crossbasis(df.dlnm$pred_bmi, 
+                   lag = 50,
+                   argvar = list(fun = "ps", df = dfv),
+                   arglag = list(fun = "ps", df = dfl))
+  
+  # Get penalty structure
+  cb.pen <- cbPen(cb)
+  
+  # Fit penalized GAM
+  fit <- gam(loghsCRP ~ cb, 
+             paraPen = list(cb = cb.pen), 
+             method = "GCV.Cp", 
+             data = df.dlnm)
+  
+  modellist[[i]] <- fit
+  edflist[i] <- sum(fit$edf[-1])
+  
+  cat(sprintf("Done: df.var = %d, df.lag = %d → edf = %.2f → total df = %.2f\n", dfv, dfl, edflist[i],dfv*dfl ))
+}
+
+# Find best model
+penaltyproportion <- (edflist / (df.grid.pen$df.var * df.grid.pen$df.lag))
+# gcv_vals <- sapply(modellist, function(x) x$gcv.ubre)
+data.frame(df.grid.pen,edflist,penaltyproportion )  %>% 
+  mutate(totaldf = df.var * df.lag) %>% 
+  relocate(penaltyproportion, .after=totaldf)
+
+# best <- which.min(edflist)
+# best.grid <- df.grid.pen[best, ]
+# best.model <- modellist[[best]]
+
+# cat("\n✔️ Best model found:\n")
+# print(best.grid)
+```
+
+```{r}
+# Create the crossbasis with the best df combination from AIC selection
+cb.bmi <- crossbasis(df.dlnm$pred_bmi, 
+                         lag = 50,
+                         argvar = list(fun = "ps", df = 11),
+                         arglag = list(fun = "ps", df = 13))
+
+# Define the penalty for the crossbasis
+cb.bmi.pen <- cbPen(cb.bmi)
+
+dlnm.gam <- gam(
+  loghsCRP ~ cb.bmi + sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  paraPen = list(cb.bmi = cb.bmi.pen),
+  method = "GCV.Cp",
+  data = df.dlnm
+)
+
+pred.cb.bmi.pen <- crosspred(cb.bmi, dlnm.gam, at = 15:50, bylag = 1, cen = 25, cumul = TRUE)
+
+# Define the base age corresponding to lag 0 (e.g., if lag 0 corresponds to age 7, then lag 1 is age 8, etc.)
+base_age <- 7
+
+```
+
+```{r}
+#| label: fig-s10-3d-penalized
+#| fig-cap: "Three-dimensional exposure-lag-response surface for the full age range (7--56) using penalized P-splines with GCV-based smoothness selection, centered at BMI = 25."
+#| fig-height: 5
+#| fig-width: 5
+x <- pred.cb.bmi.pen$predvar           # BMI (exposure)
+y <- (0:(ncol(pred.cb.bmi.pen$matfit)-1)) + base_age  # age at exposure
+# Transpose matfit to match dimensions: rows = lag, columns = BMI
+z <- t(pred.cb.bmi.pen$matfit)  # Now: 51 rows (lags) × 41 columns (BMI)
+
+# Create 3D surface plot
+plot_ly(
+  x = ~x,
+  y = ~y,
+  z = ~z,
+  type = "surface",
+  colorscale = "Viridis",
+  showscale = FALSE
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "BMI", showgrid = TRUE, gridwidth = 1),
+      yaxis = list(title = "Age at Exposure", showgrid = TRUE, gridwidth = 1),
+      zaxis = list(title = "Effect on log(hsCRP)", showgrid = TRUE, gridwidth = 1),
+      camera = list(
+        eye = list(x = 1.5, y = 1.5, z = 1.5)
+      )
+    ),
+    title = "Exposure–Lag–Response Surface"
+  )
+
+```
+
+```{r}
+#| label: fig-s10-dlnm-full-penalized
+#| fig-cap: "DLNM results for the full age range (7--56) with penalized P-splines: exposure-response curves at selected ages, lag-response curves at selected BMI values, and cumulative effects."
+#| fig-height: 7
+
+plot_dlnm(pred.cb.bmi.pen,
+            base_age = 7,
+            exposure_vals = c(20, 25, 30, 35),
+            ages_to_show = c(18, 30, 40, 50),
+            outcome_label = "log(hsCRP)",
+            exposure_label = "BMI")
+```
+
+## Reduce to Adult BMI Only (18+) and Windsorize
+
+### Natural cubic spline in both dimensions with model selection by AIC
+
+```{r}
+#| eval: FALSE
+df.grid <- expand.grid(df.var = 3:13, df.lag = 3:13)
+
+# Set up model storage
+modellist <- list()
+aiclist <- numeric(nrow(df.grid))
+
+# Loop over grid combinations
+for (i in seq_len(nrow(df.grid))) {
+  dfv <- df.grid$df.var[i]
+  dfl <- df.grid$df.lag[i]
+
+  # Create crossbasis
+  cb <- crossbasis(df.dlnm.18.win$pred_bmi, 
+                   lag = 39, 
+                   argvar = list(fun = "ns", df = dfv),
+                   arglag = list(fun = "ns", df = dfl))
+
+  # Fit model (no penalization here — pure lm)
+  fit <- lm(loghsCRP ~ cb, data = df.dlnm.18.win)
+  
+  # Store model and AIC
+  modellist[[i]] <- fit
+  aiclist[i] <- AIC(fit)
+  
+  cat(sprintf("Model %d: df.var = %d, df.lag = %d --> AIC = %.2f\n", 
+              i, dfv, dfl, aiclist[i]))
+}
+
+# Find best AIC
+best <- which.min(aiclist)
+best.grid <- df.grid[best, ]
+best.model <- modellist[[best]]
+
+cat("\n✔️ Best model using natural splines:\n")
+print(best.grid)
+```
+
+```{r}
+
+cb.bmi.18 <- crossbasis(df.dlnm.18.win$pred_bmi, 
+                     lag = 39, 
+                     argvar = list(fun = "ns", df = 6),
+                     arglag = list(fun = "ns", df = 13))
+
+dlnm.fit <- lm(
+  loghsCRP ~ cb.bmi.18 + sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  data = df.dlnm.18.win
+)
+
+pred.cb.bmi.18 <- crosspred(cb.bmi.18, dlnm.fit, at = 20:35, bylag = 1, cen = 25, cumul = TRUE)
+
+base_age <- 18
+
+```
+
+```{r}
+#| label: fig-s11-3d-unpenalized
+#| fig-cap: "Three-dimensional exposure-lag-response surface restricted to adult BMI (ages 18--56) with Winsorized values, modeled using AIC-selected natural cubic splines, centered at BMI = 25."
+#| fig-height: 5
+#| fig-width: 5
+x <- pred.cb.bmi.18$predvar           # BMI (exposure)
+y <- (0:(ncol(pred.cb.bmi.18$matfit)-1)) + base_age  # age at exposure
+# Transpose matfit to match dimensions: rows = lag, columns = BMI
+z <- t(pred.cb.bmi.18$matfit)  # Now: 51 rows (lags) × 41 columns (BMI)
+
+# Create 3D surface plot
+plot_ly(
+  x = ~x,
+  y = ~y,
+  z = ~z,
+  type = "surface",
+  colorscale = "Viridis",
+  showscale = FALSE
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "BMI", showgrid = TRUE, gridwidth = 1),
+      yaxis = list(title = "Age at Exposure", showgrid = TRUE, gridwidth = 1),
+      zaxis = list(title = "Effect on log(hsCRP)", showgrid = TRUE, gridwidth = 1),
+      camera = list(
+        eye = list(x = 1.5, y = 1.5, z = 1.5)
+      )
+    ),
+    title = "Exposure–Lag–Response Surface"
+  )
+
+```
+
+```{r}
+#| label: fig-s11-dlnm-18-unrestricted
+#| fig-cap: "DLNM results restricted to adult BMI (18--56) with natural cubic splines: exposure-response, lag-response, and cumulative effect panels."
+#| fig-height: 7
+
+plot_dlnm(pred.cb.bmi.18,
+            base_age = 18,
+            exposure_vals = c(20, 25, 30, 35),
+            ages_to_show = c(20, 30, 40, 50),
+            outcome_label = "log(hsCRP)",
+            exposure_label = "BMI")
+```
+
+### Penalized DLNM with P-splines in both dimensions
+
+```{r}
+cb.bmi.18 <- crossbasis(df.dlnm.18.win$pred_bmi, 
+                         lag = 39,
+                         argvar = list(fun = "ps", df = 6),
+                         arglag = list(fun = "ps", df = 13))
+
+
+cb.bmi.pen.18 <- cbPen(cb.bmi.18)
+
+dlnm.gam <- gam(
+  loghsCRP ~ cb.bmi.18 + sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  paraPen = list(cb.bmi = cb.bmi.pen.18),
+  method = "GCV.Cp",
+  data = df.dlnm.18.win
+)
+
+pred.cb.bmi.pen.18 <- crosspred(cb.bmi.18, dlnm.gam, at = 20:35, bylag = 1, cen = 25, cumul = TRUE)
+
+base_age <- 18
+
+```
+
+```{r}
+#| label: fig-s12-3d-penalized
+#| fig-cap: "Three-dimensional exposure-lag-response surface for adult BMI (18--56) using penalized P-splines with GCV-based smoothness selection, centered at BMI = 25."
+#| fig-height: 5
+#| fig-width: 5
+x <- pred.cb.bmi.pen.18$predvar           # BMI (exposure)
+y <- (0:(ncol(pred.cb.bmi.pen.18$matfit)-1)) + base_age  # age at exposure
+# Transpose matfit to match dimensions: rows = lag, columns = BMI
+z <- t(pred.cb.bmi.pen.18$matfit)  # Now: 51 rows (lags) × 41 columns (BMI)
+
+# Create 3D surface plot
+plot_ly(
+  x = ~x,
+  y = ~y,
+  z = ~z,
+  type = "surface",
+  colorscale = "Viridis",
+  showscale = FALSE
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "BMI", showgrid = TRUE, gridwidth = 1),
+      yaxis = list(title = "Age at Exposure", showgrid = TRUE, gridwidth = 1),
+      zaxis = list(title = "Effect on log(hsCRP)", showgrid = TRUE, gridwidth = 1),
+      camera = list(
+        eye = list(x = 1.5, y = 1.5, z = 1.5)
+      )
+    ),
+    title = "Exposure–Lag–Response Surface"
+  )
+
+```
+
+```{r}
+#| label: fig-s13-dlnm-18-penalized
+#| fig-cap: "DLNM results for adult BMI (18--56) with penalized P-splines: exposure-response, lag-response, and cumulative effect panels."
+#| fig-height: 7
+
+plot_dlnm(pred.cb.bmi.pen.18,
+            base_age = 18,
+            exposure_vals = c(20, 25, 30, 35),
+            ages_to_show = c(20, 30, 40, 50),
+            outcome_label = "log(hsCRP)",
+            exposure_label = "BMI")
+```
+
+### Lower Degrees of Freedom
+
+```{r}
+
+cb.bmi.18.lower <- crossbasis(df.dlnm.18.win$pred_bmi, 
+                         lag = 39,
+                         argvar = list(fun = "ps", df = 6),
+                         arglag = list(fun = "ps", df = 8))
+
+cb.bmi.pen.18.lower <- cbPen(cb.bmi.18.lower)
+
+dlnm.gam <- gam(
+  loghsCRP ~ cb.bmi.18.lower + sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  paraPen = list(cb.bmi = cb.bmi.pen.18.lower),
+  method = "GCV.Cp",
+  data = df.dlnm.18.win
+)
+
+pred.cb.bmi.pen.18.lower <- crosspred(cb.bmi.18.lower, dlnm.gam, at = 20:35, bylag = 1, cen = 25, cumul = TRUE)
+
+base_age <- 18
+
+# Save the final chosen model
+saveRDS(pred.cb.bmi.pen.18.lower, file = here("Data", "Models", "model.dlnm.rds"))
+```
+
+```{r}
+#| label: fig-s14-3d-lower
+#| fig-cap: "Three-dimensional exposure-lag-response surface for adult BMI (18--56) using penalized P-splines with reduced lag degrees of freedom (df.lag = 8) to produce a smoother, more interpretable surface."
+#| fig-height: 5
+#| fig-width: 5
+x <- pred.cb.bmi.pen.18.lower$predvar           # BMI (exposure)
+y <- (0:(ncol(pred.cb.bmi.pen.18.lower$matfit)-1)) + base_age  # age at exposure
+# Transpose matfit to match dimensions: rows = lag, columns = BMI
+z <- t(pred.cb.bmi.pen.18.lower$matfit)  # Now: 51 rows (lags) × 41 columns (BMI)
+
+# Create 3D surface plot
+plot_ly(
+  x = ~x,
+  y = ~y,
+  z = ~z,
+  type = "surface",
+  colorscale = "Viridis",
+  showscale = FALSE
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "BMI", showgrid = TRUE, gridwidth = 1),
+      yaxis = list(title = "Age at Exposure", showgrid = TRUE, gridwidth = 1),
+      zaxis = list(title = "Effect on log(hsCRP)", showgrid = TRUE, gridwidth = 1),
+      camera = list(
+        eye = list(x = 1.5, y = 1.5, z = 1.5)
+      )
+    ),
+    title = "Exposure–Lag–Response Surface"
+  )
+
+```
+
+```{r}
+#| label: fig-s15-dlnm-18-lower
+#| fig-cap: "DLNM results for adult BMI (18--56) with lower degrees of freedom penalized P-splines (final selected specification): exposure-response, lag-response, and cumulative effect panels."
+#| fig-height: 7
+
+plot_dlnm(pred.cb.bmi.pen.18.lower,
+            base_age = 18,
+            exposure_vals = c(20, 25, 30, 35),
+            ages_to_show = c(20, 30, 40, 50),
+            outcome_label = "log(hsCRP)",
+            exposure_label = "BMI")
+```
+
+<hr style="border: 2px solid black;">
+
+# Structured Life-Course Modeling Approach
+
+The Structured Life Course Modeling Approach (SLCMA) is a hypothesis-driven framework that operationalizes competing life course theories (e.g., accumulation, sensitive periods, and mobility or change) as alternative exposure variables and uses variable selection to identify which hypothesis best explains variation in the outcome [@mishra2009; @smith2022; @zhu2020]. For example, an accumulation of risk hypothesis was represented by total cumulative BMI across the full age range, while sensitive period hypotheses were represented by period-specific mean BMI. The full hypothesis set led to model collinearity; following recommended practice, a reduced model was fit. The mobility/change hypothesis represents the idea that dynamic shifts in adiposity across adulthood may influence later-life inflammation. Models were fit using the `slcma` [@thedunnlab2025] and `lars` [@efron2022] packages in R. To obtain valid inference accounting for the data-driven hypothesis selection process, post-selection inference was conducted using selective inference.
+
+@tbl-s12-hypotheses defines each hypothesis, its algebraic formulation, and a plausible substantive example for the BMI--hsCRP relationship. @tbl-s9-slcma-vars summarizes the distributions of all derived exposure variables, and @fig-s17-corr displays their pairwise correlations.
+
+Variable selection proceeds in two stages. In Stage 1, least angle regression (LARS) is applied to identify the subset of life course variables that best predict log(hsCRP) after adjusting for covariates. The LARS procedure is first applied to all 10 hypothesis-derived variables (@tbl-s10-lars-full), and inference for the fully saturated model is presented in @tbl-s11-slcma-full. A reduced model retaining only the 3 critical period and mobility variables is then fit (@tbl-s13-lars-reduced). In Stage 2, three inference approaches are compared for the reduced model: naive OLS, Bonferroni-corrected OLS, and selective inference based on the fixed lasso (@tbl-s14-slcma-reduced).
+
+## Life Course Hypotheses for BMI Effects on Adult hsCRP
+
+| Hypothesis | Definition | SLCMA Encoding | Algebraic Formulation | Plausible Example for BMI $\rightarrow$ hsCRP |
+|------------|------------|----------------|----------------------|-------------------------------------|
+| **Critical Period** | Exposure at a specific age/stage has the strongest effect on the outcome| Mean BMI within defined age windows (e.g., childhood, early midlife, late midlife) | $Y = \beta_0 + \beta_j X_j$ |**Childhood BMI**: BMI during childhood/adolescence (ages 7-18) has the strongest effect on adult hsCRP due to inflammation during formational growth stage |
+| **Accumulation** | Every additional time point of exposure affects the outcome in a dose-response manner, regardless of timing | Sum of BMI values across all ages/stages | $Y = \beta_0 + \beta_1(\sum_j X_j)$ |**Cumulative inflammatory burden**: Each year spent with high BMI adds to lifetime inflammatory load, with total burden across childhood, adolescence, and adulthood determining adult hsCRP levels |
+| **Recency** | More proximal exposures (closer in time to outcome) have stronger effects than distal exposures | Age-weighted sum of BMI (more weight to recent measures) | $Y = \beta_0 + \beta_1(\sum_j w_j X_j)$ where $w_j$ = age at time $j$ |**Proximal effects**: Late-life BMI has stronger influence on hsCRP than childhood BMI because current adipose tissue mass directly produces inflammatory cytokines |
+| **Mobility/Change** | Changes in BMI matter more than absolute levels| Change scores between periods (e.g., BMI gain in the last 10 years) or trajectory indicators | $Y = \beta_0 + \beta_1(X_j - X_{j-1})$ |**Weight gain trajectory**: Rapid BMI increase in adulthood (upward mobility) triggers greater inflammatory response than stable obesity |
+| **Effect Modification** | BMI at one life stage modifies the effect of BMI at another stage; interaction between time periods | Product terms between BMI at different ages/stages (e.g., BMI_childhood $\times$ BMI_adulthood) | $Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3(X_1 \times X_2)$ |**Priming**: High childhood BMI "primes" the inflammatory system, making individuals more sensitive to adult BMI effects (childhood obesity + adult obesity leads to multiplicative hsCRP increase) |
+| **Threshold** | Only exposure above (or below) a certain threshold affects the outcome; non-linear relationship | Binary indicators for exceeding BMI thresholds (e.g., BMI $\geq 25$ or $\geq 30$) at each time point | $Y = \beta_0 + \beta_1 I(X_j > \tau)$ |**Obesity threshold**: Only BMI $\geq 30$ at any point triggers persistent inflammatory changes; being overweight (BMI 25-29.9) has no lasting effect on chronic inflammation |
+| **Accumulation + Threshold** | Total duration of exposure above a threshold affects the outcome in a dose-response manner | Count of time periods where BMI exceeds a threshold (e.g., number of ages where BMI $\geq 30$) | $Y = \beta_0 + \beta_1(\sum_j I(X_j > \tau))$ |**Duration of obesity**: The number of life stages spent with BMI $\geq 30$ determines adult hsCRP; spending 3 periods obese has a greater inflammatory effect than 1 period, regardless of which specific periods |
+
+: Life Course Hypotheses for BMI Effects on Adult hsCRP {#tbl-s12-hypotheses}
+
+*Notation Key:*
+
+- **Y** = hsCRP (outcome)
+- **Xⱼ** = BMI at time period/age j
+- **β₀** = intercept
+- **βⱼ** = regression coefficient for period/age j
+- **∑ⱼ** = sum across all time periods
+- **I()** = indicator function (1 if true, 0 if false)
+- **wⱼ** = weight for period j
+- **D⁺ⱼ,ⱼ₊₁** = upward transition from period j to j+1
+- **D⁻ⱼ,ⱼ₊₁** = downward transition from period j to j+1
+- **τ** = threshold value (e.g., BMI = 30)
+
+## Distributions of Variables from each Hypothesis
+
+```{r}
+# Define the SCLMA variables based on the chosen hypotheses and merge with the main dataset
+
+df.slcma <- df.bmi_prediction %>%
+  group_by(ncdsid) %>%
+  select(ncdsid, xage, pred_bmi, bmi_category) %>%
+  summarise(
+# Threshold + Accumulation
+    yrs_normal      = sum(bmi_category == "Normal", na.rm = TRUE),
+    yrs_overweight  = sum(bmi_category == "Overweight", na.rm = TRUE),
+    yrs_obese       = sum(bmi_category == "Obese", na.rm = TRUE),
+# Critical Period
+    mean_bmi_early_life = mean(pred_bmi[xage >= 7 & xage <= 25], na.rm = TRUE),
+    mean_bmi_early_midlife = mean(pred_bmi[xage > 25 & xage <= 40], na.rm = TRUE),
+    mean_bmi_late_midlife = mean(pred_bmi[xage > 40 & xage <= 60], na.rm = TRUE),
+# Accumulation
+    total_bmi = sum(pred_bmi, na.rm = TRUE),
+# Recency
+    weighted_bmi = sum(pred_bmi * xage, na.rm = TRUE) / sum(xage, na.rm = TRUE),
+# Mobility/Change
+    bmi_change_late_midlife = mean_bmi_late_midlife - mean_bmi_early_midlife,
+# Effect Modification
+    bmi_interaction = mean_bmi_early_life * mean_bmi_late_midlife
+  ) %>% 
+  right_join(df.model, by = "ncdsid")
+
+```
+
+```{r}
+#| label: tbl-s9-slcma-vars
+#| tbl-cap: "Descriptive statistics for all SLCMA life course exposure variables, organized by hypothesis (threshold + accumulation, critical period, accumulation, recency, mobility/change, effect modification)."
+df.slcma %>%
+  select(yrs_normal:bmi_interaction) %>%
+  tbl_summary(statistic = all_continuous() ~ "{mean} ({sd})",
+              label = list(
+                yrs_normal ~ "Years with Normal BMI",
+                yrs_overweight ~ "Years with Overweight BMI", 
+                yrs_obese ~ "Years with Obese BMI",
+                total_bmi ~ "Total BMI Score",
+                mean_bmi_early_life ~ "Mean BMI Early Life",
+                mean_bmi_early_midlife ~ "Mean BMI Early Midlife",
+                mean_bmi_late_midlife ~ "Mean BMI Late Midlife",
+                weighted_bmi ~ "Weighted BMI",
+                bmi_change_late_midlife ~ "BMI Change Late Midlife",
+                bmi_interaction ~ "BMI Interaction (Avg Early x Avg Late Midlife)"
+              )) %>%
+  modify_table_body(
+    ~ .x %>%
+      add_row(label = "    Threshold + Accumulation", .before = 1) %>%
+      add_row(label = "    Critical Period", .before = 5) %>%
+      add_row(label = "    Accumulation", .before = 9) %>%
+      add_row(label = "    Recency", .before = 11) %>%
+      add_row(label = "    Mobility/Change", .before = 13) %>%
+      add_row(label = "    Effect Modification", .before = 15)
+  ) %>%
+  as_gt() %>%
+  tab_style(
+    style = cell_fill(color = "#f0f0f0"),
+    locations = cells_body(
+      rows = label %in% c("    Threshold + Accumulation", "    Critical Period", "    Accumulation", "    Recency", "    Mobility/Change", "    Effect Modification")
+    )
+  )
+
+```
+
+```{r}
+#| label: fig-s16-slcma-hist
+#| fig-cap: "Histograms showing the distribution of each SLCMA life course exposure variable."
+
+# Prepare data for plotting
+plot_data <- df.slcma %>%
+    select(yrs_normal:bmi_interaction) %>%
+    pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+    mutate(
+      category = case_when(
+        variable %in% c("yrs_normal", "yrs_overweight", "yrs_obese", "total_bmi") ~ "1. Threshold + Accumulation",
+        variable %in% c("mean_bmi_early_life", "mean_bmi_early_midlife", "mean_bmi_late_midlife") ~ "2. Critical Period",
+        variable == "weighted_bmi" ~ "3. Recency",
+        variable == "bmi_change_late_midlife" ~ "4. Mobility/Change",
+        variable == "bmi_interaction" ~ "5. Effect Modification"
+      ),
+      variable_label = case_when(
+        variable == "yrs_normal" ~ "Years Normal BMI",
+        variable == "yrs_overweight" ~ "Years Overweight BMI",
+        variable == "yrs_obese" ~ "Years Obese BMI",
+        variable == "mean_bmi_early_life" ~ "Mean BMI (7-25)",
+        variable == "mean_bmi_early_midlife" ~ "Mean BMI (26-40)",
+        variable == "mean_bmi_late_midlife" ~ "Mean BMI (41-56)",
+        variable == "total_bmi" ~ "Total BMI Score",
+        variable == "weighted_bmi" ~ "Weighted BMI",
+        variable == "bmi_change_late_midlife" ~ "BMI Change (Late Midlife)",
+        variable == "bmi_interaction" ~ "BMI Interaction"
+      ),
+      # Order by category then within-category logic
+      variable_label = factor(variable_label, levels = c(
+        # Threshold + Accumulation
+        "Years Normal BMI",
+        "Years Overweight BMI",
+        "Years Obese BMI",
+        # Critical Period (chronological)
+        "Mean BMI (7-25)",
+        "Mean BMI (26-40)",
+        "Mean BMI (41-56)",
+        # Accumulation
+        "Total BMI Score",
+        # Recency
+        "Weighted BMI",
+        # Mobility
+        "BMI Change (Late Midlife)",
+        # Effect Modification
+        "BMI Interaction"
+      ))
+    ) %>%
+    filter(!is.na(value))
+
+  # Use category as row facet for clearer grouping
+  ggplot(plot_data, aes(x = value)) +
+    geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7, color = "white") +
+    facet_wrap(~ variable_label, scales = "free", ncol = 3) +
+    labs(
+      title = "Distribution of BMI Exposure Variables",
+      x = "Value",
+      y = "Frequency"
+    ) +
+    theme_minimal() +
+    theme(
+      strip.text = element_text(size = 10, face = "bold"),
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+```
+
+## Correlation Matrix for Variables from each Hypothesis
+
+```{r}
+#| label: fig-s17-corr
+#| fig-cap: "Pairwise Pearson correlation matrix of all SLCMA exposure variables, illustrating the degree of collinearity among life course hypothesis encodings."
+library(corrplot)
+library(ggcorrplot)
+
+var_labels <- c(
+  "yrs_normal" = "Years Normal BMI",
+  "yrs_overweight" = "Years Overweight BMI",
+  "yrs_obese" = "Years Obese BMI",
+  "total_bmi" = "Total BMI Score",
+  "mean_bmi_early_life" = "Mean BMI (7-25)",
+  "mean_bmi_early_midlife" = "Mean BMI (26-40)",
+  "mean_bmi_late_midlife" = "Mean BMI (41-56)",
+  "weighted_bmi" = "Weighted BMI",
+  "bmi_change_late_midlife" = "BMI Change (Late Midlife)",
+  "bmi_interaction" = "BMI Interaction"
+)
+
+var_order <- c(
+  "yrs_normal", "yrs_overweight", "yrs_obese",
+  "mean_bmi_early_life", "mean_bmi_early_midlife", "mean_bmi_late_midlife",
+  "total_bmi",
+  "weighted_bmi", "bmi_change_late_midlife", "bmi_interaction"
+)
+
+cor_matrix <- df.slcma %>%
+  select(all_of(var_order)) %>%
+  rename_with(~ var_labels[.x], .cols = everything()) %>%
+  cor()
+
+ggcorrplot(cor_matrix,
+           hc.order = FALSE,
+           type = "upper",
+           lab = TRUE,
+           lab_size = 2,
+           colors = c("#6D9EC1", "white", "#E46726"),
+           title = "Correlation Matrix of BMI Life Course Variables",
+           ggtheme = theme_minimal())
+```
+
+## All Variables Model
+
+### LARS (Stage 1)
+
+```{r}
+#| output: FALSE
+library(lars)
+
+mod.slcma <- slcma::slcma(
+  loghsCRP ~ yrs_normal + yrs_obese + yrs_overweight + total_bmi + weighted_bmi +
+    mean_bmi_early_life + mean_bmi_early_midlife + mean_bmi_late_midlife +
+    bmi_interaction + bmi_change_late_midlife +
+    sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  adjust = c(11, 12, 13, 14, 15, 16, 17, 18),
+  data = df.slcma
+)
+
+mod.slcma.naive <- lm(
+  loghsCRP ~ yrs_normal + yrs_obese + yrs_overweight + total_bmi + weighted_bmi +
+    mean_bmi_early_life + mean_bmi_early_midlife + mean_bmi_late_midlife +
+    bmi_interaction + bmi_change_late_midlife +
+    sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  data = df.slcma
+)
+```
+
+
+```{r}
+#| label: tbl-s10-lars-full
+#| tbl-cap: "LARS variable selection steps for the full SLCMA model with all seleted life course hypothesis variables, showing the order of entry, removals, and cumulative partial R-squared at each step."
+
+summary_obj <- summary(mod.slcma)
+
+lars_summary <- data.frame(
+  Step = summary_obj$step,
+  `Variable_selected` = summary_obj$selected,
+  `Variable_removed` = summary_obj$removed,
+  Variables = summary_obj$vars,
+  `Partial_R_squared` = summary_obj$fit$R2
+)
+
+# Create a formatted table for the LARS procedure
+lars_table <- lars_summary %>%
+  mutate(
+    `Partial R²` = sprintf("%.3f", Partial_R_squared),
+    Step = as.character(Step),
+    `Variable selected` = Variable_selected,
+    `Variable removed` = Variable_removed
+  ) %>%
+  select(Step, `Variable selected`, `Variable removed`, Variables, `Partial R²`) %>%
+  gt() %>%
+  tab_header(
+    title = "LARS Procedure Summary",
+    subtitle = "Variable Selection Steps for BMI → hsCRP Analysis"
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()
+  ) %>%
+  cols_align(
+    align = "center",
+    columns = c("Step", "Variables", "Partial R²")
+  ) %>%
+  cols_align(
+    align = "left", 
+    columns = c("Variable selected", "Variable removed")
+  ) %>%
+  tab_footnote(
+    footnote = "LARS = Least Angle Regression; Variables = number of variables in model",
+    locations = cells_title()
+  )
+
+lars_table
+
+```
+
+
+### Inference (Stage 2)
+
+```{r}
+library(mvtnorm)
+
+# Define the fixed lasso inference function from the selectiveInference package
+fixedLassoInf <- selectiveInference::fixedLassoInf
+
+# Compute selective inference for the full model at 11th step - this should be similar to naive OLS
+full_infer <- slcma::slcmaInfer(mod.slcma, 11, method=c("relax"))
+```
+
+```{r}
+#| label: tbl-s11-slcma-full
+#| tbl-cap: "Naive OLS inference results for the full SLCMA model at the final LARS step, reporting estimates and 95% CIs for all 10 life course hypothesis variables without multiple testing correction."
+
+full_infer$relax$coefficients %>%
+  as.data.frame() %>%
+  rownames_to_column("Variable") %>%
+  mutate(
+    Variable = case_when(
+      Variable == "yrs_normal" ~ "Years normal weight",
+      Variable == "yrs_obese" ~ "Years obese",
+      Variable == "yrs_overweight" ~ "Years overweight",
+      Variable == "total_bmi" ~ "Total BMI",
+      Variable == "weighted_bmi" ~ "Weighted BMI",
+      Variable == "mean_bmi_early_life" ~ "Mean BMI (early life)",
+      Variable == "mean_bmi_early_midlife" ~ "Mean BMI (early midlife)",
+      Variable == "mean_bmi_late_midlife" ~ "Mean BMI (late midlife)",
+      Variable == "bmi_interaction" ~ "BMI interaction",
+      Variable == "bmi_change_late_midlife" ~ "BMI change (late midlife)",
+      TRUE ~ Variable
+    ),
+    `95% CI` = paste0("(", sprintf("%.3f", CI.lo), ", ", sprintf("%.3f", CI.up), ")")
+  ) %>%
+  select(Variable, Coef, SE, `95% CI`) %>%
+  gt() %>%
+  fmt_number(columns = c(Coef, SE), decimals = 3) %>%
+  cols_label(
+    Variable = "Hypothesis",
+    Coef = "Estimate",
+    SE = "SE"
+  ) %>%
+  tab_header(
+    title = "SLCMA Full Model without Multiple Testing Correction"
+  ) %>%
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(16),
+    column_labels.font.weight = "bold"
+  )
+```
+
+## Reduced Variables Model
+
+### LARS (Stage 1)
+
+```{r}
+#| output: FALSE
+library(lars)
+
+mod.slcma.reduced <- slcma::slcma(
+  loghsCRP ~ mean_bmi_early_life + mean_bmi_early_midlife + mean_bmi_early_life +
+    bmi_change_late_midlife +
+    sex + sweep10_age + educ_qual + father_bmi + mother_bmi + n646 + n607 + n2383,
+  adjust = c(4, 5, 6, 7, 8, 9, 10, 11, 12),
+  data = df.slcma
+)
+```
+
+```{r}
+#| label: tbl-s13-lars-reduced
+#| tbl-cap: "LARS variable selection steps for the reduced SLCMA model with 3 life course hypothesis variables (critical period and mobility), showing the order of entry and cumulative partial R-squared."
+summary_obj <- summary(mod.slcma.reduced) %>% suppressMessages()
+
+# Create LARS summary table
+lars_summary <- data.frame(
+  Step = summary_obj$step,
+  `Variable_selected` = summary_obj$selected,
+  `Variable_removed` = summary_obj$removed,
+  Variables = summary_obj$vars,
+  `Partial_R_squared` = summary_obj$fit$R2
+)
+
+# Create a formatted table for the LARS procedure
+lars_table <- lars_summary %>%
+  mutate(
+    `Partial R²` = sprintf("%.3f", Partial_R_squared),
+    Step = as.character(Step),
+    `Variable selected` = Variable_selected,
+    `Variable removed` = Variable_removed
+  ) %>%
+  select(Step, `Variable selected`, `Variable removed`, Variables, `Partial R²`) %>%
+  gt() %>%
+  tab_header(
+    title = "LARS Procedure Summary",
+    subtitle = "Variable Selection Steps for BMI → hsCRP Analysis"
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels()
+  ) %>%
+  cols_align(
+    align = "center",
+    columns = c("Step", "Variables", "Partial R²")
+  ) %>%
+  cols_align(
+    align = "left", 
+    columns = c("Variable selected", "Variable removed")
+  ) %>%
+  tab_footnote(
+    footnote = "LARS = Least Angle Regression; Variables = number of variables in model",
+    locations = cells_title()
+  )
+
+lars_table
+```
+
+
+### Selective Inference (Stage 2)
+
+```{r}
+# Compute both fixed lasso and relaxed lasso inference for the reduced model at 3rd step
+fixed_lasso <- slcma::slcmaInfer(mod.slcma.reduced, 3, method = "selectiveInference")
+relaxed_lasso <- slcma::slcmaInfer(mod.slcma.reduced, 3, method = "relax")
+
+order_vec <- c(
+  "bmi_change_late_midlife",
+  "mean_bmi_early_life",
+  "mean_bmi_early_midlife"
+)
+
+npred <- length(order_vec)
+
+# Compute Naive OLS estimates with Bonferroni-corrected CIs and p-values
+slcma_table <- relaxed_lasso$relax$coefficients %>%
+  as.data.frame() %>%
+  rownames_to_column("Variable") %>%
+  filter(Variable %in% order_vec) %>%
+  mutate(
+    pvalue = 2 * pt(abs(Coef / SE), df = nrow(df.slcma) - npred, lower.tail = FALSE),
+    Bonf_pvalue = pmin(pvalue * npred, 1),
+    Bonf_CI_lo = Coef + qt(0.025 / npred, df = nrow(df.slcma) - npred) * SE,
+    Bonf_CI_up = Coef + qt(1 - 0.025 / npred, df = nrow(df.slcma) - npred) * SE,
+    Variable = factor(Variable, levels = order_vec)
+  ) %>%
+  arrange(Variable)
+
+# Fixed Lasso selective inference results
+var_names_fl <- names(fixed_lasso$fli$vars)
+fixed_df <- tibble(
+  Variable = var_names_fl,
+  FL_Estimate = as.numeric(fixed_lasso$fli$coef0),
+  FL_pvalue = fixed_lasso$fli$pv,
+  FL_CI_lo = fixed_lasso$fli$ci[, 1],
+  FL_CI_up = fixed_lasso$fli$ci[, 2]
+) %>%
+  filter(Variable %in% order_vec) %>%
+  mutate(Variable = factor(Variable, levels = order_vec)) %>%
+  arrange(Variable)
+
+# Merge
+slcma_table <- slcma_table %>%
+  left_join(fixed_df, by = "Variable")
+
+saveRDS(slcma_table, file = here("Data", "Models", "model.slcma.reduced.rds"))
+```
+
+```{r}
+#| label: tbl-s14-slcma-reduced
+#| tbl-cap: "Comparison of three inference methods (naive OLS, Bonferroni-corrected OLS, and fixed lasso selective inference) for the reduced SLCMA model, reporting estimates, 95% CIs, and p-values for the 3 selected life course variables."
+# GT table
+
+slcma_table %>%
+  mutate(
+    Variable = case_when(
+      Variable == "bmi_change_late_midlife" ~ "BMI change (late midlife)",
+      Variable == "mean_bmi_early_life" ~ "Mean BMI (early life)",
+      Variable == "mean_bmi_early_midlife" ~ "Mean BMI (early midlife)"
+    ),
+    `95% CI` = paste0("(", sprintf("%.3f", CI.lo), ", ", sprintf("%.3f", CI.up), ")"),
+    `Bonf 95% CI` = paste0("(", sprintf("%.3f", Bonf_CI_lo), ", ", sprintf("%.3f", Bonf_CI_up), ")"),
+    `SI 95% CI` = paste0("(", sprintf("%.3f", FL_CI_lo), ", ", sprintf("%.3f", FL_CI_up), ")")
+  ) %>%
+  select(Variable, Coef, SE, `95% CI`, pvalue,
+         `Bonf 95% CI`, Bonf_pvalue,
+         FL_Estimate, `SI 95% CI`, FL_pvalue) %>%
+  gt() %>%
+  fmt_number(columns = c(Coef, SE, FL_Estimate), decimals = 3) %>%
+  fmt(columns = c(pvalue, Bonf_pvalue, FL_pvalue), fns = function(x) {
+    ifelse(x < 0.001, "<0.001", sprintf("%.3f", x))
+  }) %>%
+  cols_label(
+    Variable = "Exposure",
+    Coef = "Estimate",
+    SE = "SE",
+    pvalue = "p-value",
+    Bonf_pvalue = "p-value",
+    FL_Estimate = "Estimate",
+    FL_pvalue = "p-value"
+  ) %>%
+  tab_header(
+    title = "SLCMA Inference Methods Comparison",
+    subtitle = "Estimates with Bonferroni and Selective Inference corrections"
+  ) %>%
+  tab_spanner(label = "Naive OLS", columns = c(Coef, SE, `95% CI`, pvalue)) %>%
+  tab_spanner(label = "Bonferroni", columns = c(`Bonf 95% CI`, Bonf_pvalue)) %>%
+  tab_spanner(label = "Selective Inference", columns = c(FL_Estimate, `SI 95% CI`, FL_pvalue)) %>%
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(16),
+    heading.subtitle.font.size = px(13),
+    column_labels.font.weight = "bold"
+  )
+```
+
+<hr style="border: 2px solid black;">
+
+# Lifecourse Methods Key Decision Points {.smaller .custom-small}
+
+Each life course method involves a series of analytic decisions that shape the resulting estimates. @tbl-s15-decisions catalogues the key decision points for each method, including choices about exposure operationalization, model specification, basis function selection, clustering criteria, and inference procedures. These decisions represent sources of researcher degrees of freedom that should be reported transparently.
+
+| Method | Key Decision Points |
+|--------------------------|----------------------------------------------|
+| **Single Numeric Summary** | \- Definition of the exposure window (entire observed life course vs restricted age ranges)<br>- Choice of summary metric (mean BMI, cumulative BMI, maximum BMI, threshold-based summaries) |
+| **Time Period Comparison** | \- Definition and number of life course periods and their boundaries<br>- Summary metric within each period (mean BMI, cumulative exposure, or threshold-based measures)<br> - Model specification (conditional inclusion of all periods vs separate period-specific models) |
+| **Multiple Informant Model** | \- Definition of time windows<br>- Summary metric within each period <br> - Estimation framework (GEE vs maximum likelihood)<br>- Correlation structure specification (typically independent)<br> - Choice of reference period and contrast coding for hypothesis testing <br> |
+| **Sequence Analysis** | \- Number and definition of exposure states <br>- Distance metric for sequence comparison (optimal matching, dynamic Hamming, etc.) <br>- Cost specification for substitutions, insertions, and deletions in optimal matching <br>- Clustering algorithm (hierarchical, PAM, k-means) <br>- Number of clusters to retain and cluster validation criteria <br>- Naming and substantive interpretation of sequence patterns |
+| **Latent Class Trajectory Modeling** | \- Number of time points included in trajectory modeling <br>- Functional form of trajectories (linear, quadratic, cubic, piecewise) <br>- Random effects structure (random intercepts, random slopes, both) <br>- Covariance structure for random effects and residuals<br>- Number of latent classes to retain and class enumeration criteria (BIC, AIC, entropy, likelihood ratio tests)<br>- Method for handling class uncertainty (modal assignment, two-step, three-step approaches)<br>- Naming and substantive interpretation of trajectory classes |
+| **Distributed Lag Non-linear Models** | \- Exposure window and lag range (e.g., restricting to adult exposures; maximum lag)<br>- Basis function choice for exposure and lag (e.g., natural splines vs P-splines)<br>- Degrees of freedom and knot placement strategy<br>- Assessment of model fit and model selection criterion <br>- Penalized vs unpenalized estimation and smoothness selection e.g., GCV <br>- Exposure centering value for interpretation (e.g., BMI = 25) <br>- Choice of summaries and visualizations (exposure–lag surface, lag slices, exposure slices, cumulative effects) |
+| **Structured Life Course Modeling Approach** | \- Life course hypotheses to encode <br>- Operationalization of hypotheses as exposure variables<br>- Variable selection procedure (LARS/forward selection)<br>- Criteria for reduced model specification under collinearity<br>- Selective inference method <br>- Interpretation of selected variables as dominant life course mechanisms|
+
+: Life Course Methods: Key Decision Points {#tbl-s15-decisions}
+
+<hr style="border: 2px solid black;">
+
