@@ -188,7 +188,6 @@ library(tidygam)
 library(lcmm)
 library(marginaleffects)
 source(here("Code", "Clean_NCDS.R"))
-source(here("Code", "IOTF_BMI.R"))
 set_gtsummary_theme(theme_gtsummary_compact(set_theme = TRUE))
 ```
 
