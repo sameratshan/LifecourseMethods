@@ -340,11 +340,11 @@ df.NCDS.HBMI.complete.analytic %>%
 ```
 
 
-BMI measures were drawn from a consolidated dataset (CLOSER Work Package 1) including harmonized height, weight, and BMI measures from the five British longitudinal cohort studies including the NCDS [@closer2019]. Childhood and adolescent BMI values (ages 7, 11, and 16) were derived from direct physical measurements taken by a nurse. Adult BMI values were obtained from a mix of self-reported and measured data, depending on wave: weight and height at ages 23, 42, and 50 were self-reported, while assessments at ages 33 and 44 were completed by trained interviewers or nurses. BMI at age 55 was derived from self-reported height and weight collected via web or telephone interview as part of the age 55 wave [@cls2024].
+BMI measures were drawn from a consolidated dataset (CLOSER Work Package 1) including harmonized height, weight, and BMI measures from the five British longitudinal cohort studies including the NCDS.[@closer2019] Childhood and adolescent BMI values (ages 7, 11, and 16) were derived from direct physical measurements taken by a nurse. Adult BMI values were obtained from a mix of self-reported and measured data, depending on wave: weight and height at ages 23, 42, and 50 were self-reported, while assessments at ages 33 and 44 were completed by trained interviewers or nurses. BMI at age 55 was derived from self-reported height and weight collected via web or telephone interview as part of the age 55 wave.[@cls2024]
 
 # Modeling BMI Exposure
 
-The hierarchical GAM was implemented using the computationally efficient `bam()` function in the `mgcv` package in R [@wood2025; @wood2015]. Modeling BMI as a smooth trajectory is appropriate because the analysis targets longer-term patterns of adiposity rather than short-term fluctuations in weight between measurement occasions. Smoothing reduces noise due to irregular timing while preserving the broader exposure patterns. To ensure appropriate flexibility in exposure patterns, we estimated a separate non-linear BMI trajectory for each individual while constraining trajectories to share the same degree of smoothness (Model S structure) [@pedersen2019] (see Figure 1 in main text). The model also includes a fixed effect for measurement mode (directly measured vs. self-reported) to account for systematic reporting differences. This approach to imputation reduces noise due to irregular measurement timing, accounts for systematic reporting differences, and provides consistent longitudinal BMI trajectories for each respondent. Statistical code for model fitting is in Appendix S2 "Clean_NCDS.R" file.
+The hierarchical GAM was implemented using the computationally efficient `bam()` function in the `mgcv` package in R.[@wood2025; @wood2015] Modeling BMI as a smooth trajectory is appropriate because the analysis targets longer-term patterns of adiposity rather than short-term fluctuations in weight between measurement occasions. Smoothing reduces noise due to irregular timing while preserving the broader exposure patterns. To ensure appropriate flexibility in exposure patterns, we estimated a separate non-linear BMI trajectory for each individual while constraining trajectories to share the same degree of smoothness (Model S structure) [@pedersen2019] (see Figure 1 in main text). The model also includes a fixed effect for measurement mode (directly measured vs. self-reported) to account for systematic reporting differences. This approach to imputation reduces noise due to irregular measurement timing, accounts for systematic reporting differences, and provides consistent longitudinal BMI trajectories for each respondent. Statistical code for model fitting is in Appendix S2 "Clean_NCDS.R" file.
 
 :::: {#fig-s2-bmi layout-ncol=2 fig-cap="Predicted BMI trajectories from the hierarchical GAM. A) Population mean trajectory with 95% confidence interval. B) Individual predicted trajectories for a random sample of 16 respondents, with observed BMI values shown by measurement type."}
 
@@ -490,7 +490,6 @@ model.single %>%
   ) %>%
   add_significance_stars(hide_ci = FALSE) %>%
   bold_p() %>%
-  add_glance_table() %>%
   bold_labels()
 ```
 
@@ -752,7 +751,6 @@ tbl_merge(
         ) %>%
         add_significance_stars(hide_ci = FALSE) %>%
         bold_p() %>%
-        add_glance_table() %>%
         bold_labels()
     }),
     tab_spanner = names(bmi_predictor_sets) %>% paste0("**", ., "**")
@@ -772,7 +770,7 @@ tbl_merge(
 
 # Multiple Informant Model Using General Estimating Equations
 
-The multiple informant approach estimates associations between exposures at different life stages and a single outcome measure in a unified regression framework, treating synthetic copies of the outcome as repeated measures [@horton1999; @litman2006; @sanchez2011]. Estimation can be conducted using generalized estimating equations or maximum likelihood approaches [@bather2023; @litman2007]. Including the period indicators, BMI, and their interaction together quantifies differences in the exposure association across periods.
+The multiple informant approach estimates associations between exposures at different life stages and a single outcome measure in a unified regression framework, treating synthetic copies of the outcome as repeated measures.[@horton1999; @litman2006; @sanchez2011] Estimation can be conducted using generalized estimating equations or maximum likelihood approaches.[@bather2023; @litman2007] Including the period indicators, BMI, and their interaction together quantifies differences in the exposure association across periods.
 
 Here, the data are reshaped to long format, with each participant contributing three rows (one per period: early life, early midlife, and late midlife). The GEE model includes a period-by-BMI interaction term, enabling a formal test of whether the association between BMI and log(hsCRP) varies across life stages. An independence working correlation structure is specified, as the repeated measures here represent summary statistics from different life windows. @tbl-s5-gee reports the estimated main effects of BMI and period, the interaction terms, and all covariates. Linear hypothesis tests are conducted to compute the BMI--inflammation association in each period, with results presented in the main text.
 
@@ -848,7 +846,7 @@ gee_model %>%
 
 # Sequence Analysis
 
-Sequence analysis represents life course exposure as an ordered series of categorical states and groups individuals based on similarities in these state sequences using distance metrics and clustering algorithms [@aisenbrey2010; @elsenburg2024]. The resulting sequence clusters can then be used as categorical predictors in regression models to estimate differences in outcomes across trajectory patterns. Pairwise dissimilarities between sequences were computed using optimal matching, and Ward's hierarchical clustering was applied to the resulting distance matrix to identify groups of individuals with similar BMI state trajectories. Analyses were conducted using the `TraMineR` and `cluster` packages in R [@gabadinho2025]. Sequence index plots are presented for solutions ranging from 2 to 6 clusters (@fig-s3-seq-2cl through @fig-s7-seq-6cl), along with the full unpartitioned sample (@fig-s2-seq-all). @fig-s8-cluster-quality displays five cluster quality metrics (ASW, Calinski-Harabasz, Hubert's Gamma, Point Biserial Correlation, and R-squared) across cluster solutions to guide the choice of the optimal number of groups. Based on these diagnostics, a 3-cluster solution is selected and the resulting trajectory class membership is used as a categorical predictor of log(hsCRP) in a fully adjusted regression model (@tbl-s6-sequence).
+Sequence analysis represents life course exposure as an ordered series of categorical states and groups individuals based on similarities in these state sequences using distance metrics and clustering algorithms.[@aisenbrey2010; @elsenburg2024] The resulting sequence clusters can then be used as categorical predictors in regression models to estimate differences in outcomes across trajectory patterns. Pairwise dissimilarities between sequences were computed using optimal matching, and Ward's hierarchical clustering was applied to the resulting distance matrix to identify groups of individuals with similar BMI state trajectories. Analyses were conducted using the `TraMineR` and `cluster` packages in R.[@gabadinho2025] Sequence index plots are presented for solutions ranging from 2 to 6 clusters (@fig-s3-seq-2cl through @fig-s7-seq-6cl), along with the full unpartitioned sample (@fig-s2-seq-all). @fig-s8-cluster-quality displays five cluster quality metrics (ASW, Calinski-Harabasz, Hubert's Gamma, Point Biserial Correlation, and R-squared) across cluster solutions to guide the choice of the optimal number of groups. Based on these diagnostics, a 3-cluster solution is selected and the resulting trajectory class membership is used as a categorical predictor of log(hsCRP) in a fully adjusted regression model (@tbl-s6-sequence).
 
 ```{r}
 library(TraMineR)
@@ -1049,7 +1047,6 @@ model.sequence %>%
   ) %>%
   add_significance_stars(hide_ci = FALSE) %>%
   bold_p() %>%
-  add_glance_table() %>%
   bold_labels()
 ```
 
@@ -1057,7 +1054,7 @@ model.sequence %>%
 
 # Latent Class Trajectory Modeling
 
-Latent class trajectory modeling refers to a family of model-based approaches that identify unobserved subgroups of individuals following similar exposure trajectories over time using finite mixture models [@herle2020; @vandernest2020]. These models estimate class-specific trajectory shapes and assign individuals probabilistically to latent trajectory classes. Estimation is typically conducted using maximum likelihood, and distal outcomes assessed using a range of approaches [@bakk2021; @nylundgibson2019].
+Latent class trajectory modeling refers to a family of model-based approaches that identify unobserved subgroups of individuals following similar exposure trajectories over time using finite mixture models.[@herle2020; @vandernest2020] These models estimate class-specific trajectory shapes and assign individuals probabilistically to latent trajectory classes. Estimation is typically conducted using maximum likelihood, and distal outcomes assessed using a range of approaches.[@bakk2021; @nylundgibson2019]
 
 The growth mixture model (GMM) is a type of latent class trajectory model that allows individual-level random effects within classes, thereby relaxing the assumption that all individuals within a class follow identical trajectories. We additionally allowed class-specific residual variance-covariance structures, enabling within-class variability in BMI to differ across latent classes. The large number of repeated time points in the observed BMI data substantially increased model parameterization, motivating the use of decade-based age averages. Using the `lcmm` package in R [@proustlima2017], growth mixture models were fit with three functional forms for the time trend: linear, logarithmic, and quantile spline, and with varying numbers of latent classes (1 to 6). Spline models used three internal knots at quantiles of the age distribution to allow flexible nonlinear shapes. Model fit was evaluated using log-likelihood, AIC, BIC, entropy, class proportions, and substantive interpretability. @tbl-s7-fit compares model fit statistics across all specifications to guide the selection of the best-fitting model. A 4-class logarithmic model is selected based on these criteria.
 
@@ -1418,7 +1415,6 @@ model.lca %>%
   ) %>%
   add_significance_stars(hide_ci = FALSE) %>%
   bold_p() %>%
-  add_glance_table() %>%
   bold_labels()
 ```
 
@@ -1656,9 +1652,9 @@ contrasts_tbl %>%
 
 # Distributed Lag Nonlinear Models (DLNM)
 
-Distributed lag nonlinear models (DLNMs) represent life course exposure as a continuous function of both exposure intensity and timing by modeling an exposure-lag response surface using cross-basis functions [@gasparrini2014; @zanobetti2000]. The cumulative effects estimated by DLNMs can be interpreted as the expected difference in log(hsCRP) under sustained BMI levels (e.g., BMI 20 or BMI 30) relative to BMI 25 across adulthood.
+Distributed lag nonlinear models (DLNMs) represent life course exposure as a continuous function of both exposure intensity and timing by modeling an exposure-lag response surface using cross-basis functions.[@gasparrini2014; @zanobetti2000] The cumulative effects estimated by DLNMs can be interpreted as the expected difference in log(hsCRP) under sustained BMI levels (e.g., BMI 20 or BMI 30) relative to BMI 25 across adulthood.
 
-All models were fit using the `dlnm` package in R [@gasparrini2025]. This section presents a series of DLNM specifications to evaluate sensitivity to modeling choices. Models were initially fit using BMI data across the full observed age range (ages 7--56), with a grid search over degrees of freedom (1--13) in both the exposure and lag dimensions to select the best-fitting unpenalized specification using AIC (@fig-s9-3d-unpenalized, @fig-s9-dlnm-full-unrestricted), and using penalized P-splines (@fig-s10-3d-penalized, @fig-s10-dlnm-full-penalized). The analysis is then repeated restricting to adult BMI only (ages 18--56) with Winsorized values to reduce the influence of extreme predictions, using both natural cubic splines (@fig-s11-3d-unpenalized, @fig-s11-dlnm-18-unrestricted) and penalized P-splines (@fig-s12-3d-penalized, @fig-s13-dlnm-18-penalized). Penalized models with higher and lower degrees of freedom were compared to assess overfitting and robustness; a final specification with lower degrees of freedom for the lag dimension provides a smoother and less over-fitted surface (@fig-s14-3d-lower, @fig-s15-dlnm-18-lower). Using the selected cross-basis specification, predictions were centered at BMI 25 and summarized as (i) lag-response patterns at fixed BMI values, (ii) exposure-response patterns at selected ages, and (iii) cumulative effects across the adult exposure window.
+All models were fit using the `dlnm` package in R.[@gasparrini2025] This section presents a series of DLNM specifications to evaluate sensitivity to modeling choices. Models were initially fit using BMI data across the full observed age range (ages 7--56), with a grid search over degrees of freedom (1--13) in both the exposure and lag dimensions to select the best-fitting unpenalized specification using AIC (@fig-s9-3d-unpenalized, @fig-s9-dlnm-full-unrestricted), and using penalized P-splines (@fig-s10-3d-penalized, @fig-s10-dlnm-full-penalized). The analysis is then repeated restricting to adult BMI only (ages 18--56) with Winsorized values to reduce the influence of extreme predictions, using both natural cubic splines (@fig-s11-3d-unpenalized, @fig-s11-dlnm-18-unrestricted) and penalized P-splines (@fig-s12-3d-penalized, @fig-s13-dlnm-18-penalized). Penalized models with higher and lower degrees of freedom were compared to assess overfitting and robustness; a final specification with lower degrees of freedom for the lag dimension provides a smoother and less over-fitted surface (@fig-s14-3d-lower, @fig-s15-dlnm-18-lower). Using the selected cross-basis specification, predictions were centered at BMI 25 and summarized as (i) lag-response patterns at fixed BMI values, (ii) exposure-response patterns at selected ages, and (iii) cumulative effects across the adult exposure window.
 
 ```{r}
 library(dlnm)
@@ -2282,7 +2278,7 @@ plot_dlnm(pred.cb.bmi.pen.18.lower,
 
 # Structured Life-Course Modeling Approach
 
-The Structured Life Course Modeling Approach (SLCMA) is a hypothesis-driven framework that operationalizes competing life course theories (e.g., accumulation, sensitive periods, and mobility or change) as alternative exposure variables and uses variable selection to identify which hypothesis best explains variation in the outcome [@mishra2009; @smith2022; @zhu2020]. For example, an accumulation of risk hypothesis was represented by total cumulative BMI across the full age range, while sensitive period hypotheses were represented by period-specific mean BMI. The full hypothesis set led to model collinearity; following recommended practice, a reduced model was fit. The mobility/change hypothesis represents the idea that dynamic shifts in adiposity across adulthood may influence later-life inflammation. Models were fit using the `slcma` [@thedunnlab2025] and `lars` [@efron2022] packages in R. To obtain valid inference accounting for the data-driven hypothesis selection process, post-selection inference was conducted using selective inference.
+The Structured Life Course Modeling Approach (SLCMA) is a hypothesis-driven framework that operationalizes competing life course theories (e.g., accumulation, sensitive periods, and mobility or change) as alternative exposure variables and uses variable selection to identify which hypothesis best explains variation in the outcome.[@mishra2009; @smith2022; @zhu2020] For example, an accumulation of risk hypothesis was represented by total cumulative BMI across the full age range, while sensitive period hypotheses were represented by period-specific mean BMI. The full hypothesis set led to model collinearity; following recommended practice, a reduced model was fit. The mobility/change hypothesis represents the idea that dynamic shifts in adiposity across adulthood may influence later-life inflammation. Models were fit using the `slcma` [@thedunnlab2025] and `lars` [@efron2022] packages in R. To obtain valid inference accounting for the data-driven hypothesis selection process, post-selection inference was conducted using selective inference.
 
 @tbl-s12-hypotheses defines each hypothesis, its algebraic formulation, and a plausible substantive example for the BMI--hsCRP relationship. @tbl-s9-slcma-vars summarizes the distributions of all derived exposure variables, and @fig-s17-corr displays their pairwise correlations.
 
